@@ -1,0 +1,16 @@
+.card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  /* Sombra suave para dar profundidade */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f3f4f6;
+  padding: 2rem;
+  width: 100%;
+}
+
+/* Responsividade: menos padding em telas pequenas */
+@media (max-width: 640px) {
+  .card {
+    padding: 1.5rem;
+  }
+}

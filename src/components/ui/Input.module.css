@@ -1,0 +1,90 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem; /* Um pouco mais perto do label */
+  width: 100%;
+}
+
+.label {
+  font-size: 0.875rem; /* 14px */
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-left: 2px; /* Alinha visualmente com a borda arredondada */
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  position: absolute;
+  left: 1rem;
+  color: var(--text-secondary);
+  pointer-events: none;
+  width: 18px;
+  height: 18px;
+  z-index: 10;
+}
+
+.inputField {
+  width: 100%;
+  padding: 0.65rem 1rem; /* Padding confortável */
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background-color: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm); /* Arredondado moderno */
+  
+  /* A mágica do visual moderno: Sombra sutil */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease-in-out;
+  font-family: inherit;
+}
+
+/* Espaço extra se tiver ícone */
+.withIcon {
+  padding-left: 2.75rem; 
+}
+
+.inputField::placeholder {
+  color: #94a3b8; /* Slate 400 - cinza mais claro */
+}
+
+/* Estado de Hover (passar o mouse) */
+.inputField:hover:not(:disabled) {
+  border-color: #cbd5e1; /* Escurece levemente a borda */
+}
+
+/* Estado de Foco (clicar) */
+.inputField:focus {
+  outline: none;
+  border-color: var(--primary);
+  background-color: #fff;
+  /* Anel de foco suave em vez de borda dura */
+  box-shadow: 0 0 0 4px var(--primary-light), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.inputField:disabled {
+  background-color: #f1f5f9; /* Slate 100 */
+  color: #64748b;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.errorText {
+  color: var(--danger);
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  margin-left: 2px;
+}
+
+.inputError {
+  border-color: var(--danger);
+}
+.inputError:focus {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 4px #fee2e2; /* Vermelho claro */
+}

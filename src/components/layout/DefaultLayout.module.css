@@ -1,0 +1,28 @@
+.container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-page);
+}
+
+.content {
+  flex: 1;
+  padding: 2rem;
+  transition: margin-left 0.3s ease;
+  /* Margem esquerda baseada na largura da sidebar */
+  margin-left: 260px; 
+}
+
+.contentCollapsed {
+  margin-left: 90px;
+}
+
+/* Responsividade Mobile */
+@media (max-width: 768px) {
+  .content {
+    margin-left: 0;
+    padding: 1rem;
+  }
+  .contentCollapsed {
+    margin-left: 0;
+  }
+}

@@ -1,0 +1,54 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-sm); /* Usa o arredondamento global */
+  font-weight: 500; /* Levemente menos negrito */
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  outline: none;
+  gap: 0.5rem;
+  font-family: inherit;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Primary agora usa a variável global */
+.primary {
+  background-color: var(--primary);
+  color: white;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+.primary:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px); /* Efeito sutil de clique */
+}
+
+/* Secondary mais limpo */
+.secondary {
+  background-color: white;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+.secondary:hover:not(:disabled) {
+  background-color: var(--bg-page);
+  border-color: #cbd5e1;
+}
+
+.danger {
+  background-color: var(--danger);
+  color: white;
+}
+.danger:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.fullWidth {
+  width: 100%;
+}

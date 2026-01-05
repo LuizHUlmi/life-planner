@@ -1,0 +1,41 @@
+:root {
+  /* --- PALETA DE CORES (Slate & Indigo) --- */
+  
+  /* Primary: Cor de destaque (Botões, Links, Ícones ativos) */
+  --primary: #4f46e5;       /* Indigo 600 - Elegante e focado */
+  --primary-hover: #4338ca; /* Indigo 700 */
+  --primary-light: #e0e7ff; /* Indigo 100 - Fundo de itens ativos */
+
+  /* Backgrounds */
+  --bg-page: #f8fafc;       /* Slate 50 - Não é branco puro, é um cinza gelo suave */
+  --bg-card: #ffffff;       /* Branco puro para destacar o conteúdo */
+  
+  /* Textos */
+  --text-primary: #1e293b;  /* Slate 800 - Quase preto, mas suave */
+  --text-secondary: #64748b;/* Slate 500 - Cinza médio para descrições */
+  --text-placeholder: #94a3b8;
+  
+  /* Bordas */
+  --border-color: #e2e8f0;  /* Slate 200 - Borda bem sutil */
+  
+  /* Feedback */
+  --danger: #ef4444;        /* Vermelho moderno */
+  --success: #10b981;       /* Verde Esmeralda */
+
+  /* Arredondamento */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased; /* Deixa a fonte mais nítida */
+}
+
+* {
+  box-sizing: border-box;
+}

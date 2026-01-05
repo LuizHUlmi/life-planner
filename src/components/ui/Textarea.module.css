@@ -1,0 +1,46 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.textareaField {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s;
+  background-color: #fff;
+  min-height: 100px; /* Altura mínima padrão */
+  resize: vertical;  /* Permite redimensionar só para baixo */
+  font-family: inherit; /* Herda a fonte do sistema */
+}
+
+.textareaField:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.textareaField:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.errorText {
+  color: #dc2626;
+  font-size: 0.85rem;
+}
+
+.inputError {
+  border-color: #dc2626;
+}
