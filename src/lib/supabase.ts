@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Tenta pegar as chaves do .env, se não existirem, usa string vazia para não quebrar o visual agora
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// Busca as variáveis que definimos no .env
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Cria a conexão única para ser usada no app todo
+export const supabase = createClient(supabaseUrl, supabaseKey);
