@@ -20,7 +20,7 @@
   width: 90px;
 }
 
-/* --- BOTÃO FLUTUANTE --- */
+/* --- BOTÃO FLUTUANTE (Desktop) --- */
 .toggleButton {
   position: absolute;
   right: -16px;
@@ -45,6 +45,35 @@
   background-color: var(--bg-page);
   color: var(--primary);
   transform: scale(1.1);
+}
+
+/* --- BOTÃO FECHAR (Mobile) --- */
+.mobileCloseBtn {
+  display: none; /* Invisível no Desktop */
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  margin-left: auto; /* Empurra para a direita */
+}
+
+/* --- OVERLAY (Fundo Escuro Mobile) --- */
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 40; /* Atrás da sidebar (50), frente do conteúdo */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.overlay.visible {
+  opacity: 1;
 }
 
 /* --- HEADER --- */
@@ -112,7 +141,7 @@
 }
 
 .navItem.active {
-  background-color: #eff6ff; /* Azul bem clarinho */
+  background-color: #eff6ff;
   color: var(--primary);
   font-weight: 600;
 }
@@ -217,16 +246,39 @@
   background-color: #fee2e2;
 }
 
-/* Mobile */
+/* --- MOBILE --- */
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(0);
+    box-shadow: 2px 0 8px rgba(0,0,0,0.2);
   }
+  
+  /* Quando colapsado (fechado), movemos para fora da tela */
   .sidebar.collapsed {
     transform: translateX(-100%);
-    width: 260px;
+    width: 260px; /* Mantém largura para animação fluida */
   }
+
+  /* Overlay visível no mobile quando aberto */
+  .overlay {
+    display: block; 
+    pointer-events: auto;
+  }
+  
+  /* Se fechado, o overlay não interfere */
+  .sidebar.collapsed ~ .overlay, /* Se estiverem no mesmo nível */
+  .overlay:not(.visible) { 
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  /* Esconde o botão toggle Desktop */
   .toggleButton {
     display: none;
+  }
+
+  /* Mostra o botão fechar Mobile */
+  .mobileCloseBtn {
+    display: flex;
   }
 }

@@ -1,14 +1,15 @@
+/* src/components/layout/DefaultLayout.module.css */
 .container {
   display: flex;
   min-height: 100vh;
   background-color: var(--bg-page);
+  position: relative; /* Necessário para posicionar o botão mobile */
 }
 
 .content {
   flex: 1;
   padding: 2rem;
   transition: margin-left 0.3s ease;
-  /* Margem esquerda baseada na largura da sidebar */
   margin-left: 260px; 
 }
 
@@ -16,13 +17,36 @@
   margin-left: 90px;
 }
 
+/* Botão Mobile Hambúrguer */
+.mobileMenuBtn {
+  display: none; /* Escondido no Desktop */
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 30; /* Acima do conteúdo, abaixo da sidebar aberta */
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  color: var(--text-primary);
+}
+
 /* Responsividade Mobile */
 @media (max-width: 768px) {
   .content {
-    margin-left: 0;
+    margin-left: 0; /* Remove margem no mobile */
     padding: 1rem;
+    padding-top: 4rem; /* Espaço extra no topo para o botão Menu não ficar em cima do texto */
   }
   .contentCollapsed {
     margin-left: 0;
+  }
+  
+  .mobileMenuBtn {
+    display: flex; /* Aparece no mobile */
+    align-items: center;
+    justify-content: center;
   }
 }
