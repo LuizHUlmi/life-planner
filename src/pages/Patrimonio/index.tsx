@@ -1,266 +1,251 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
-
+import { Select } from '../../components/ui/Select';
 import { 
-  Plus, DollarSign, Laptop, Shirt, Armchair, Car, 
-  Tag, AlertTriangle, CheckCircle2 
+  Plus, Landmark, Car, Laptop, Home, 
+  Trash2, TrendingUp, Calendar
 } from 'lucide-react';
-
-// Tipos de dados
-type NicheType = 'eletronicos' | 'vestuario' | 'casa' | 'veiculos';
 
 interface Asset {
   id: number;
   name: string;
-  niche: NicheType;
-  tags: string[];         // Ex: ['Apple', 'Trabalho']
-  purchaseDate: string;
-  price: number;
-  lifespanYears: number;
+  estimated_value: number;
+  category: string;
+  purchase_date: string;
+  notes?: string;
 }
 
-// Configuração dos Nichos (Ícones e Cores)
-const NICHES = {
-  eletronicos: { label: 'Eletrônicos', icon: <Laptop size={20} />, color: '#6366f1' }, // Indigo
-  vestuario:   { label: 'Vestuário',   icon: <Shirt size={20} />,  color: '#ec4899' }, // Pink
-  casa:        { label: 'Casa & Office', icon: <Armchair size={20} />, color: '#10b981' }, // Emerald
-  veiculos:    { label: 'Veículos',    icon: <Car size={20} />,    color: '#f59e0b' }, // Amber
-};
-
 export function Patrimonio() {
-  const [activeNiche, setActiveNiche] = useState<NicheType>('eletronicos');
-  const [activeTag, setActiveTag] = useState<string>('Todos');
-  const [showForm, setShowForm] = useState(false);
-
-  // --- DADOS MOCKADOS (Exemplos) ---
-  const [assets] = useState<Asset[]>([
-    // Eletrônicos
-    { id: 1, name: 'MacBook Pro M3', niche: 'eletronicos', tags: ['Computadores', 'Apple', 'Trabalho'], purchaseDate: '2024-01-10', price: 14000, lifespanYears: 4 },
-    { id: 2, name: 'iPhone 14', niche: 'eletronicos', tags: ['Celulares', 'Apple'], purchaseDate: '2023-05-01', price: 5000, lifespanYears: 2 },
-    { id: 3, name: 'Sony A7 III', niche: 'eletronicos', tags: ['Fotografia', 'Sony'], purchaseDate: '2022-08-15', price: 11000, lifespanYears: 5 },
-    
-    // Vestuário
-    { id: 4, name: 'Nike Air Jordan', niche: 'vestuario', tags: ['Tênis', 'Coleção'], purchaseDate: '2023-11-20', price: 1200, lifespanYears: 2 },
-    { id: 5, name: 'Relógio Garmin', niche: 'vestuario', tags: ['Relógios', 'Esporte'], purchaseDate: '2023-01-10', price: 2500, lifespanYears: 3 },
-    { id: 6, name: 'Jaqueta Couro', niche: 'vestuario', tags: ['Roupas', 'Inverno'], purchaseDate: '2021-06-01', price: 800, lifespanYears: 10 },
-
-    // Casa
-    { id: 7, name: 'Cadeira Herman Miller', niche: 'casa', tags: ['Escritório', 'Móveis'], purchaseDate: '2022-02-01', price: 8500, lifespanYears: 12 },
-  ]);
-
-  // --- LÓGICA DE FILTRO ---
-  // 1. Filtra pelo Nicho Ativo
-  const nicheAssets = assets.filter(asset => asset.niche === activeNiche);
+  const { user } = useAuth();
+  const [, setLoading] = useState(false);
   
-  // 2. Extrai todas as Tags disponíveis neste Nicho (para criar os botões de filtro)
-  const availableTags = ['Todos', ...Array.from(new Set(nicheAssets.flatMap(a => a.tags)))];
+  // Estado do Form
+  const [name, setName] = useState('');
+  const [value, setValue] = useState('');
+  const [category, setCategory] = useState('Eletrônicos');
+  const [date, setDate] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 3. Filtra pela Tag Ativa
-  const filteredAssets = activeTag === 'Todos' 
-    ? nicheAssets 
-    : nicheAssets.filter(asset => asset.tags.includes(activeTag));
+  // Lista
+  const [assets, setAssets] = useState<Asset[]>([]);
 
-  // 4. Calcula totais
-  const totalValue = filteredAssets.reduce((acc, item) => acc + item.price, 0);
+  // 1. CARREGAR ATIVOS
+  useEffect(() => {
+    fetchAssets();
+  }, [user]);
 
-  // Função auxiliar de Barra de Vida
-  const calculateLife = (date: string, years: number) => {
-    const start = new Date(date).getTime();
-    const end = new Date(date);
-    end.setFullYear(end.getFullYear() + years);
-    const now = new Date().getTime();
-    
-    const total = end.getTime() - start;
-    const elapsed = now - start;
-    let pct = (elapsed / total) * 100;
-    if (pct > 100) pct = 100;
-    
-    return { 
-      pct, 
-      label: pct >= 100 ? 'Troca necessária' : `${Math.round(pct)}% utilizado`,
-      color: pct > 90 ? '#ef4444' : pct > 50 ? '#f59e0b' : '#10b981' // Red, Amber, Green
-    };
+  async function fetchAssets() {
+    if (!user) return;
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('assets')
+        .select('*')
+        .order('estimated_value', { ascending: false }); // Do mais caro para o mais barato
+
+      if (error) throw error;
+      setAssets(data || []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // 2. ADICIONAR ATIVO
+  const handleAddAsset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !value || !user) return;
+
+    try {
+      setIsSubmitting(true);
+      const newAsset = {
+        user_id: user.id,
+        name,
+        estimated_value: Number(value),
+        category,
+        purchase_date: date || null
+      };
+
+      const { data, error } = await supabase
+        .from('assets')
+        .insert([newAsset])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data) setAssets([data, ...assets]);
+      
+      // Limpa Form
+      setName('');
+      setValue('');
+      setDate('');
+    } catch (error) {
+      alert('Erro ao adicionar bem.');
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // 3. REMOVER
+  const handleRemove = async (id: number) => {
+    if (!confirm('Tem certeza? Isso removerá o bem do seu patrimônio.')) return;
+    try {
+      const { error } = await supabase.from('assets').delete().eq('id', id);
+      if (error) throw error;
+      setAssets(assets.filter(a => a.id !== id));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // Cálculos
+  const totalWealth = assets.reduce((acc, curr) => acc + curr.estimated_value, 0);
+
+  // Helper de Ícone
+  const getIcon = (cat: string) => {
+    switch(cat) {
+      case 'Veículos': return <Car size={20} />;
+      case 'Imóveis': return <Home size={20} />;
+      case 'Investimentos': return <TrendingUp size={20} />;
+      default: return <Laptop size={20} />;
+    }
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
       
-      {/* HEADER */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <div>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-            Meus Ativos
-          </h1>
-          <p style={{ color: 'var(--text-secondary)' }}>
-            Gerencie o ciclo de vida e valor dos seus bens.
-          </p>
-        </div>
-        <Button onClick={() => setShowForm(!showForm)}>
-          <Plus size={18} /> Novo Item
-        </Button>
+      <header style={{ marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+          Meus Ativos
+        </h1>
+        <p style={{ color: 'var(--text-secondary)' }}>
+          Gestão de patrimônio e bens materiais.
+        </p>
       </header>
 
-      {/* --- FORMULÁRIO (Simplificado visualmente) --- */}
-      {showForm && (
-        <Card style={{ marginBottom: '2rem', border: '1px dashed var(--primary)' }}>
-          <h3 style={{ marginBottom: '1rem', color: 'var(--primary)' }}>Cadastrar no Nicho: {NICHES[activeNiche].label}</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-            <Input label="Nome do Item" />
-            <Input label="Tags (separar por vírgula)" placeholder="Ex: Apple, Trabalho" />
-            <Input label="Valor (R$)" type="number" />
-            <Input label="Data Compra" type="date" />
-            <Input label="Anos de Vida Útil" type="number" />
+      {/* KPI TOTAL */}
+      <Card style={{ marginBottom: '2rem', padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.5rem', backgroundColor: '#0f172a', color: 'white' }}>
+        <div style={{ padding: '1rem', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '50%' }}>
+          <Landmark size={32} color="#fbbf24" />
+        </div>
+        <div>
+          <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>Patrimônio Estimado</div>
+          <div style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#fbbf24' }}>
+            R$ {totalWealth.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </div>
-          <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-            <Button variant="secondary" onClick={() => setShowForm(false)}>Cancelar</Button>
-            <Button>Salvar</Button>
-          </div>
-        </Card>
-      )}
+        </div>
+      </Card>
 
-      {/* --- NAVEGAÇÃO DE NICHOS (ABAS SUPERIORES) --- */}
-      <div style={{ 
-        display: 'flex', 
-        gap: '0.5rem', 
-        borderBottom: '1px solid var(--border-color)', 
-        paddingBottom: '1rem', 
-        marginBottom: '1.5rem',
-        overflowX: 'auto'
-      }}>
-        {(Object.keys(NICHES) as NicheType[]).map((key) => (
-          <button
-            key={key}
-            onClick={() => { setActiveNiche(key); setActiveTag('Todos'); }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '0.5rem',
-              padding: '0.75rem 1.25rem',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              cursor: 'pointer',
-              backgroundColor: activeNiche === key ? 'var(--primary-light)' : 'transparent',
-              color: activeNiche === key ? 'var(--primary)' : 'var(--text-secondary)',
-              fontWeight: activeNiche === key ? 600 : 500,
-              transition: 'all 0.2s'
-            }}
-          >
-            {NICHES[key].icon}
-            {NICHES[key].label}
-          </button>
-        ))}
-      </div>
-
-      {/* --- DASHBOARD DO NICHO ATUAL --- */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-        {/* Card de Valor Total */}
-        <Card style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ padding: '0.8rem', backgroundColor: '#ecfdf5', borderRadius: '50%', color: '#059669' }}>
-            <DollarSign size={24} />
-          </div>
-          <div>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Valor em {NICHES[activeNiche].label}
-            </span>
-            <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-              R$ {totalValue.toLocaleString('pt-BR')}
-            </div>
-          </div>
-        </Card>
-
-        {/* Card de Contagem */}
-        <Card style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ padding: '0.8rem', backgroundColor: '#f1f5f9', borderRadius: '50%', color: 'var(--text-primary)' }}>
-            <Tag size={24} />
-          </div>
-          <div>
-             <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Itens Listados
-            </span>
-            <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-              {filteredAssets.length}
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* --- FILTROS DE TAGS (PÍLULAS) --- */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '2rem' }}>
-        {availableTags.map(tag => (
-          <button
-            key={tag}
-            onClick={() => setActiveTag(tag)}
-            style={{
-              padding: '0.4rem 1rem',
-              borderRadius: '20px',
-              border: activeTag === tag ? `1px solid ${NICHES[activeNiche].color}` : '1px solid var(--border-color)',
-              backgroundColor: activeTag === tag ? NICHES[activeNiche].color : 'white',
-              color: activeTag === tag ? 'white' : 'var(--text-secondary)',
-              fontSize: '0.85rem',
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-          >
-            {tag}
-          </button>
-        ))}
-      </div>
-
-      {/* --- GRID DE ATIVOS --- */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-        {filteredAssets.map(asset => {
-          const life = calculateLife(asset.purchaseDate, asset.lifespanYears);
+      {/* FORMULÁRIO */}
+      <Card style={{ marginBottom: '2rem', padding: '1.5rem' }}>
+        <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem' }}>Adicionar Novo Bem</h3>
+        <form onSubmit={handleAddAsset} style={{ display: 'grid', gap: '1rem' }}>
           
-          return (
-            <Card key={asset.id} style={{ position: 'relative', overflow: 'hidden', borderLeft: `4px solid ${NICHES[asset.niche].color}` }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
+            <Input 
+              label="Nome do Bem" 
+              placeholder="Ex: Notebook Dell" 
+              value={name} 
+              onChange={e => setName(e.target.value)} 
+              disabled={isSubmitting}
+            />
+            <Input 
+              label="Valor Estimado (R$)" 
+              type="number" 
+              placeholder="0,00" 
+              value={value} 
+              onChange={e => setValue(e.target.value)} 
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '1rem', alignItems: 'end' }}>
+             <Select 
+                label="Categoria"
+                value={category}
+                onChange={e => setCategory(e.target.value)}
+                options={[
+                  { value: 'Eletrônicos', label: 'Eletrônicos / Setup' },
+                  { value: 'Veículos', label: 'Veículos' },
+                  { value: 'Imóveis', label: 'Imóveis' },
+                  { value: 'Investimentos', label: 'Investimentos' },
+                  { value: 'Outros', label: 'Outros' },
+                ]}
+              />
+              <Input 
+                label="Data Aquisição (Opcional)" 
+                type="date" 
+                value={date} 
+                onChange={e => setDate(e.target.value)} 
+              />
+              <Button type="submit" style={{ height: '42px', marginBottom: '1px' }} disabled={isSubmitting}>
+                <Plus size={18} /> Adicionar
+              </Button>
+          </div>
+        </form>
+      </Card>
+
+      {/* LISTA */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {assets.length === 0 ? (
+           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+             Nenhum bem cadastrado.
+           </div>
+        ) : (
+          assets.map(asset => (
+            <Card key={asset.id} style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ 
+                  padding: '0.8rem', 
+                  backgroundColor: 'var(--bg-page)', 
+                  borderRadius: '12px', 
+                  color: 'var(--text-secondary)' 
+                }}>
+                  {getIcon(asset.category)}
+                </div>
                 <div>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: '1.1rem', color: 'var(--text-primary)' }}>
                     {asset.name}
-                  </h3>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
-                    Adquirido em {new Date(asset.purchaseDate).getFullYear()}
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', gap: '0.8rem', marginTop: '0.2rem' }}>
+                    <span style={{ backgroundColor: '#f1f5f9', padding: '2px 8px', borderRadius: '4px' }}>
+                      {asset.category}
+                    </span>
+                    {asset.purchase_date && (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                         <Calendar size={12} /> {new Date(asset.purchase_date).toLocaleDateString('pt-BR')}
+                      </span>
+                    )}
                   </div>
                 </div>
-                <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  R$ {asset.price.toLocaleString('pt-BR')}
-                </div>
               </div>
 
-              {/* Tags do Item */}
-              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-                {asset.tags.map(t => (
-                  <span key={t} style={{ fontSize: '0.7rem', backgroundColor: 'var(--bg-page)', padding: '2px 8px', borderRadius: '4px', color: 'var(--text-secondary)' }}>
-                    #{t}
-                  </span>
-                ))}
-              </div>
-
-              {/* Barra de Vida */}
-              <div style={{ marginTop: 'auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.3rem', color: life.color }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    {life.pct >= 100 ? <AlertTriangle size={14} /> : <CheckCircle2 size={14} />}
-                    {life.label}
-                  </span>
-                  <span>{asset.lifespanYears} anos total</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Valor Atual</div>
+                  <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--primary)' }}>
+                    R$ {asset.estimated_value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </div>
                 </div>
-                
-                <div style={{ width: '100%', height: '6px', backgroundColor: '#f1f5f9', borderRadius: '3px', overflow: 'hidden' }}>
-                  <div style={{ width: `${life.pct}%`, height: '100%', backgroundColor: life.color, borderRadius: '3px' }} />
-                </div>
+                <button 
+                  onClick={() => handleRemove(asset.id)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#cbd5e1', padding: '0.5rem' }}
+                  title="Remover Bem"
+                >
+                  <Trash2 size={20} className="hover:text-red-500" />
+                </button>
               </div>
 
             </Card>
-          )
-        })}
-
-        {filteredAssets.length === 0 && (
-          <div style={{ gridColumn: '1 / -1', padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)', border: '2px dashed var(--border-color)', borderRadius: '12px' }}>
-            Nenhum item encontrado com a tag <strong>"{activeTag}"</strong> em {NICHES[activeNiche].label}.
-          </div>
+          ))
         )}
       </div>
 

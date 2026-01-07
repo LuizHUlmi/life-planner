@@ -1,62 +1,95 @@
-import { Button } from '../../components/ui/Button';
+import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { Save, UserCog } from 'lucide-react';
+import { LogOut, Github } from 'lucide-react';
 
 export function Configuracoes() {
+  const { user, signOut } = useAuth();
+
+  // Função para formatar a data de criação da conta
+  const joinDate = user?.created_at 
+    ? new Date(user.created_at).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '-';
+
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
       
       <header style={{ marginBottom: '2rem' }}>
         <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-          Ajustes & Perfil
+          Configurações da Conta
         </h1>
         <p style={{ color: 'var(--text-secondary)' }}>
-          Gerencie seus dados pessoais e preferências do sistema.
+          Gerencie seu perfil e sessão.
         </p>
       </header>
 
-      <form onSubmit={(e) => e.preventDefault()}>
-        <Card>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
-            <UserCog color="var(--primary)" size={24} />
-            <h3 style={{ fontSize: '1.1rem', margin: 0, fontWeight: 600, color: 'var(--text-primary)' }}>
-              Dados Pessoais
-            </h3>
+      <div style={{ display: 'grid', gap: '2rem' }}>
+        
+        {/* CARTÃO DE PERFIL */}
+        <Card style={{ padding: '2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2rem' }}>
+            <div style={{ 
+              width: '80px', height: '80px', 
+              backgroundColor: '#e0e7ff', color: 'var(--primary)', 
+              borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '2rem', fontWeight: 700
+            }}>
+              {user?.email?.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                {user?.user_metadata?.full_name || 'Usuário Life Planner'}
+              </h2>
+              <p style={{ color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                Membro desde {joinDate}
+              </p>
+            </div>
           </div>
 
           <div style={{ display: 'grid', gap: '1.5rem' }}>
-            
-            {/* Nome Completo */}
             <Input 
-              label="Nome Completo" 
-              placeholder="Digite seu nome" 
-              defaultValue="Luiz Silva" // Valor de exemplo
+              label="E-mail de Acesso" 
+              value={user?.email || ''} 
+              disabled 
             />
-
-            {/* Data de Nascimento */}
-            <div style={{ maxWidth: '300px' }}>
-              <Input 
-                label="Data de Nascimento" 
-                type="date"
-                defaultValue="1995-05-20" // Valor de exemplo
-              />
-            </div>
-
-            {/* Futuramente podemos adicionar aqui: Foto de Perfil, Tema (Claro/Escuro), etc */}
-          
+            
+            <Input 
+              label="ID do Usuário (Supabase)" 
+              value={user?.id || ''} 
+              disabled 
+            />
           </div>
+        </Card>
 
-          {/* Botão Salvar */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)' }}>
-            <Button type="submit" variant="primary" style={{ paddingLeft: '2rem', paddingRight: '2rem' }}>
-              <Save size={18} />
-              Salvar Alterações
+        {/* ZONA DE PERIGO / AÇÕES */}
+        <Card style={{ padding: '2rem', borderLeft: '4px solid #ef4444' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem', color: '#ef4444' }}>
+            Sessão
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+            Ao sair, você precisará fazer login novamente para acessar seus dados.
+          </p>
+          
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <Button 
+              onClick={signOut} 
+              style={{ backgroundColor: '#fee2e2', color: '#ef4444', border: '1px solid #fecaca' }}
+            >
+              <LogOut size={18} /> Sair do Sistema
             </Button>
           </div>
-
         </Card>
-      </form>
+
+        {/* CRÉDITOS (Opcional - mas legal para portfólio) */}
+        <div style={{ textAlign: 'center', marginTop: '2rem', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+          <p>Life Planner v1.0</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+             <Github size={14} /> Desenvolvido para uso pessoal
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }

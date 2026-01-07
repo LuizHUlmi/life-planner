@@ -16,6 +16,8 @@ import { Compras } from "./pages/Compras";
 import { Orcamento } from "./pages/Orcamento";
 import { Tarefas } from "./pages/Tarefas";
 import { Configuracoes } from "./pages/Configuracoes";
+import { Inventario } from "./pages/Inventario";
+import { Rotina } from "./pages/Rotina";
 
 // Componente para proteger rotas privadas
 function PrivateRoute({ children }: { children: JSX.Element }) {
@@ -45,6 +47,8 @@ function App() {
              <Route path="/orcamento" element={<Orcamento />} />
              <Route path="/tarefas" element={<Tarefas />} />
              <Route path="/configuracoes" element={<Configuracoes />} />
+             <Route path="/inventario" element={<Inventario />} />
+             <Route path="/rotina" element={<Rotina />} />
           </Route>
         </Routes>
       </BrowserRouter>

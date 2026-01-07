@@ -19,7 +19,9 @@ import {
   Utensils,
   Box,
   ShoppingCart,
-  Wallet
+  Wallet,
+  Package,
+  Repeat
 } from "lucide-react";
 
 
@@ -188,6 +190,28 @@ export function Sidebar({ isCollapsed, toggleSidebar }: SidebarProps) {
             <Wallet />
           </div>
           {!isCollapsed && <span>Orçamento</span>}
+        </NavLink>
+
+        <NavLink
+          to="/inventario"
+          className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ""}`}
+          title="Inventário"
+        >
+          <div className={styles.iconContainer}>
+            <Package />
+          </div>
+          {!isCollapsed && <span>Inventário</span>}
+        </NavLink>
+
+        <NavLink
+          to="/rotina"
+          className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ""}`}
+          title="Rotina"
+        >
+          <div className={styles.iconContainer}>
+            <Repeat />
+          </div>
+          {!isCollapsed && <span>Rotina</span>}
         </NavLink>
 
         <NavLink

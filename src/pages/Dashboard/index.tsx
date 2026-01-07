@@ -1,268 +1,215 @@
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
+import { useNavigate } from 'react-router-dom';
+
+// Componentes Visuais
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
+
+import { DashboardCalendar } from './components/DashboardCalendar'; // Calendário de Eventos
+
+// Ícones
 import { 
-  Activity, Moon, TrendingUp,
-  Dumbbell, Utensils, AlertCircle, ArrowRight,
-  Droplet, Wallet, Calendar as CalendarIcon
+  Wallet, Activity, Calendar as CalendarIcon, 
+  ArrowRight, TrendingUp, PenLine, Dumbbell, Utensils, CheckCircle2 
 } from 'lucide-react';
+import { HabitMatrix } from './components/HabitMatrix';
 
 export function Dashboard() {
-  // --- MOCKUP DE DADOS ---
-  const todaySummary = {
-    sleep: '7h 30m',
-    mood: 'Produtivo',
-    weight: '82.5 kg',
-    water: '2.5L'
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Estados dos KPIs
+  const [netWorth, setNetWorth] = useState(0);
+  const [currentWeight, setCurrentWeight] = useState<number | null>(null);
+  
+  // Estados de Performance Semanal
+  const [dietConsistency, setDietConsistency] = useState(0); // Dias no foco na ultima semana
+  const [workoutCount, setWorkoutCount] = useState(0); // Treinos na ultima semana
+  
+  // Estado do Último Treino
+  const [lastWorkout, setLastWorkout] = useState<{ date: string, type: string, exercises: number } | null>(null);
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) fetchDashboardData();
+  }, [user]);
+
+  async function fetchDashboardData() {
+    try {
+      setLoading(true);
+
+      // 1. PATRIMÔNIO (Soma dos Ativos)
+      const { data: assets } = await supabase.from('assets').select('estimated_value');
+      const totalWealth = assets?.reduce((acc, curr) => acc + curr.estimated_value, 0) || 0;
+      setNetWorth(totalWealth);
+
+      // 2. DADOS DO DIÁRIO (Últimos 7 dias para consistência + Último Peso)
+      const today = new Date();
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(today.getDate() - 7);
+      
+      const { data: recentLogs } = await supabase
+        .from('daily_logs')
+        .select('*')
+        .order('date', { ascending: false }) // Mais recente primeiro
+        .limit(14); // Pega um pouco mais para garantir achar peso
+
+      if (recentLogs && recentLogs.length > 0) {
+        // A. Peso Mais Recente
+        const weightLog = recentLogs.find(log => log.weight > 0);
+        if (weightLog) setCurrentWeight(weightLog.weight);
+
+        // B. Último Treino Realizado
+        const lastTrainingLog = recentLogs.find(log => log.workout_type === 'academia' || log.workout_type === 'alternativo');
+        if (lastTrainingLog) {
+          const exerciseCount = Array.isArray(lastTrainingLog.workout_details) ? lastTrainingLog.workout_details.length : 0;
+          setLastWorkout({
+            date: lastTrainingLog.date,
+            type: lastTrainingLog.workout_type,
+            exercises: exerciseCount
+          });
+        }
+
+        // C. Consistência da Última Semana (Filtrar logs dos ultimos 7 dias)
+        const weekLogs = recentLogs.filter(log => new Date(log.date) >= sevenDaysAgo);
+        
+        // Contar Treinos
+        const workouts = weekLogs.filter(log => ['academia', 'alternativo'].includes(log.workout_type)).length;
+        setWorkoutCount(workouts);
+
+        // Contar Dieta (100% ou >50%)
+        const dietDays = weekLogs.filter(log => ['100', 'mais_50'].includes(log.diet_score)).length;
+        setDietConsistency(dietDays);
+      }
+
+    } catch (error) {
+      console.error("Erro ao carregar dashboard", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Helpers de Texto
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
+  const firstName = user?.user_metadata?.full_name?.split(' ')[0] || 'Usuário';
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    // Ajuste simples para verificar se é hoje/ontem (ignorando timezones para simplificar visualização)
+    if (date.toISOString().split('T')[0] === today.toISOString().split('T')[0]) return 'Hoje';
+    
+    // Ontem
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (date.toISOString().split('T')[0] === yesterday.toISOString().split('T')[0]) return 'Ontem';
+
+    return date.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' });
   };
-
-  const nextWorkout = {
-    name: 'Upper 1 (Foco Peitoral)',
-    lastLoad: 'Supino: 72kg',
-    duration: '60 min'
-  };
-
-  const dietToday = {
-    type: 'HIGH CARB',
-    calories: 2900,
-    macros: { p: 220, c: 350, g: 65 }
-  };
-
-  const financeAlerts = 2; 
-  const assetAlerts = 1;
-
-  // --- LÓGICA DO CALENDÁRIO ---
-  // Simulando dias que você preencheu o diário este mês (ex: dias 1, 2, 3, 5, 6...)
-  const filledDays = [1, 2, 3, 5, 6, 7, 8, 10, 11, 12, 14, 15]; 
-  const currentMonth = new Date();
-  const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
-  const today = currentMonth.getDate();
 
   return (
-    <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
       
-      {/* --- 1. CABEÇALHO --- */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: '2rem' }}>
+      {/* HEADER */}
+      <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
         <div>
           <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-            Olá, Luiz 👋
+            {greeting}, {firstName}.
           </h1>
           <p style={{ color: 'var(--text-secondary)' }}>
-            Mantenha a disciplina. Cada registro conta.
+            Resumo da sua performance recente.
           </p>
         </div>
-        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', textAlign: 'right' }}>
-          {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
-        </div>
+        
+        <Button onClick={() => navigate('/diario')}>
+          <PenLine size={18} /> Preencher Diário
+        </Button>
       </header>
 
-      {/* --- 2. METRICAS RÁPIDAS --- */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-        <Card style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ padding: '0.6rem', background: '#e0e7ff', borderRadius: '50%', color: 'var(--primary)' }}>
-            <Moon size={20} />
-          </div>
-          <div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Sono Hoje</div>
-            <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{todaySummary.sleep}</div>
-          </div>
-        </Card>
-
-        <Card style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ padding: '0.6rem', background: '#dcfce7', borderRadius: '50%', color: '#166534' }}>
-            <Activity size={20} />
-          </div>
-          <div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Humor</div>
-            <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{todaySummary.mood}</div>
-          </div>
-        </Card>
-
-        <Card style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ padding: '0.6rem', background: '#fef3c7', borderRadius: '50%', color: '#d97706' }}>
-            <TrendingUp size={20} />
-          </div>
-          <div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Peso</div>
-            <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{todaySummary.weight}</div>
-          </div>
-        </Card>
-
-        <Card style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ padding: '0.6rem', background: '#e0f2fe', borderRadius: '50%', color: '#0284c7' }}>
-            <Droplet size={20} />
-          </div>
-          <div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Água</div>
-            <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{todaySummary.water}</div>
-          </div>
-        </Card>
-      </div>
-
-      {/* --- GRID PRINCIPAL --- */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+      {/* --- BLOCO 1: KPIs --- */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
         
-        {/* ESQUERDA: AÇÃO (Treino e Dieta) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          
-          <Card style={{ position: 'relative', overflow: 'hidden', borderLeft: '4px solid var(--primary)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', fontWeight: 600 }}>
-                <Dumbbell size={20} />
-                <span>Treino do Dia</span>
-              </div>
-              <Link to="/treino" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}>
-                Ver ficha <ArrowRight size={14} />
-              </Link>
-            </div>
-            
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: '0.5rem' }}>
-              {nextWorkout.name}
-            </h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
-              Última carga: <strong>{nextWorkout.lastLoad}</strong>
-            </p>
+        {/* KPI: Patrimônio */}
+        <Card style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', borderLeft: '4px solid #f59e0b', cursor: 'pointer' }} onClick={() => navigate('/patrimonio')}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>
+            <Wallet size={18} /> Patrimônio Líquido
+          </div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+            R$ {netWorth.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          </div>
+        </Card>
 
-            <Button fullWidth>Iniciar Treino</Button>
-          </Card>
+        {/* KPI: Peso */}
+        <Card style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', borderLeft: '4px solid #3b82f6', cursor: 'pointer' }} onClick={() => navigate('/biometria')}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>
+            <Activity size={18} /> Peso Atual
+          </div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+            {currentWeight ? `${currentWeight} kg` : '-- kg'}
+          </div>
+        </Card>
 
-          <Card style={{ position: 'relative', overflow: 'hidden', borderLeft: '4px solid #ef4444' }}>
-             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ef4444', fontWeight: 600 }}>
-                <Utensils size={20} />
-                <span>Nutrição</span>
-              </div>
-              <Link to="/nutricao" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}>
-                Cardápio <ArrowRight size={14} />
-              </Link>
-            </div>
+        {/* KPI: Consistência Dieta (Semana) */}
+        <Card style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', borderLeft: '4px solid #10b981', cursor: 'pointer' }} onClick={() => navigate('/nutricao')}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>
+            <Utensils size={18} /> Dieta (7 dias)
+          </div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+             <span style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>{dietConsistency}/7</span>
+             <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>dias no foco</span>
+          </div>
+        </Card>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <h3 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: '0.2rem', color: '#ef4444' }}>
-                  {dietToday.type}
-                </h3>
-                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                  {dietToday.calories} Kcal
-                </span>
-              </div>
-              <div style={{ display: 'flex', gap: '0.8rem', fontSize: '0.8rem', textAlign: 'center' }}>
-                <div><div style={{ fontWeight: 700 }}>{dietToday.macros.p}g</div><div style={{ color: 'var(--text-secondary)' }}>P</div></div>
-                <div><div style={{ fontWeight: 700 }}>{dietToday.macros.c}g</div><div style={{ color: 'var(--text-secondary)' }}>C</div></div>
-                <div><div style={{ fontWeight: 700 }}>{dietToday.macros.g}g</div><div style={{ color: 'var(--text-secondary)' }}>G</div></div>
-              </div>
-            </div>
-          </Card>
+        {/* KPI: Consistência Treino (Semana) */}
+        <Card style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', borderLeft: '4px solid #8b5cf6', cursor: 'pointer' }} onClick={() => navigate('/diario?view=history')}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>
+            <Dumbbell size={18} /> Treino (7 dias)
+          </div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+             <span style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>{workoutCount}</span>
+             <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>sessões realizadas</span>
+          </div>
+        </Card>
 
-        </div>
-
-        {/* DIREITA: CALENDÁRIO & ALERTAS */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          
-          {/* --- NOVO: CALENDÁRIO DE CONSISTÊNCIA --- */}
-          <Card>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
-                <CalendarIcon size={18} />
-                <span>Consistência (Diário)</span>
-              </div>
-              <Link to="/diario" style={{ fontSize: '0.8rem', color: 'var(--primary)', textDecoration: 'none' }}>
-                Preencher Hoje
-              </Link>
-            </div>
-
-            {/* Grid do Calendário */}
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(7, 1fr)', 
-              gap: '0.5rem', 
-              textAlign: 'center' 
-            }}>
-              {/* Dias da Semana */}
-              {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, i) => (
-                <div key={i} style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{d}</div>
-              ))}
-
-              {/* Dias do Mês */}
-              {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
-                const isFilled = filledDays.includes(day);
-                const isToday = day === today;
-
-                return (
-                  <div 
-                    key={day}
-                    style={{
-                      aspectRatio: '1/1',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: '50%',
-                      fontSize: '0.8rem',
-                      fontWeight: isFilled || isToday ? 600 : 400,
-                      backgroundColor: isFilled ? 'var(--primary)' : isToday ? 'transparent' : '#f3f4f6',
-                      color: isFilled ? 'white' : isToday ? 'var(--primary)' : '#9ca3af',
-                      border: isToday ? '2px solid var(--primary)' : 'none',
-                      position: 'relative',
-                      cursor: 'default'
-                    }}
-                    title={isFilled ? 'Diário preenchido' : 'Pendente'}
-                  >
-                    {day}
-                    {/* Pequeno check visual se preenchido, opcional, mas limpo só com cor */}
-                  </div>
-                );
-              })}
-            </div>
-            
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', fontSize: '0.75rem', color: 'var(--text-secondary)', justifyContent: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--primary)' }}></div> Preenchido
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                 <div style={{ width: 8, height: 8, borderRadius: '50%', border: '2px solid var(--primary)' }}></div> Hoje
-              </div>
-            </div>
-          </Card>
-
-          {/* Alertas */}
-          <Card>
-             <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Alertas</h4>
-             
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                <Link to="/compras" style={{ textDecoration: 'none' }}>
-                  <div style={{ 
-                    display: 'flex', alignItems: 'center', gap: '0.8rem', 
-                    padding: '0.8rem', borderRadius: '8px', 
-                    backgroundColor: '#fee2e2', color: '#b91c1c' 
-                  }}>
-                    <Wallet size={20} />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>Compras</div>
-                      <div style={{ fontSize: '0.8rem', opacity: 0.9 }}>{financeAlerts} itens essenciais</div>
-                    </div>
-                  </div>
-                </Link>
-
-                {assetAlerts > 0 && (
-                  <Link to="/patrimonio" style={{ textDecoration: 'none' }}>
-                    <div style={{ 
-                      display: 'flex', alignItems: 'center', gap: '0.8rem', 
-                      padding: '0.8rem', borderRadius: '8px', 
-                      backgroundColor: '#fef3c7', color: '#b45309' 
-                    }}>
-                      <AlertCircle size={20} />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>Ativos</div>
-                        <div style={{ fontSize: '0.8rem', opacity: 0.9 }}>{assetAlerts} troca prevista</div>
-                      </div>
-                    </div>
-                  </Link>
-                )}
-             </div>
-          </Card>
-
-        </div>
       </div>
+
+      {/* --- BLOCO 2: MATRIZ DE HÁBITOS E MÉTRICAS --- */}
+      <section style={{ marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+           <h2 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+             Consistência do Mês
+           </h2>
+           {lastWorkout && (
+              <div style={{ 
+                marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px', 
+                fontSize: '0.8rem', backgroundColor: '#f0f9ff', padding: '6px 12px', borderRadius: '20px', color: '#0369a1', border: '1px solid #bae6fd' 
+              }}>
+                 <CheckCircle2 size={14} /> 
+                 Último treino: <b>{formatDate(lastWorkout.date)}</b> ({lastWorkout.type})
+              </div>
+           )}
+        </div>
+        
+        {/* Componente Atualizado com Bolinhas Coloridas e Checks */}
+        <HabitMatrix />
+      </section>
+
+      {/* --- BLOCO 3: AGENDA --- */}
+      <section>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1rem' }}>
+          <CalendarIcon size={20} color="var(--primary)" />
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+            Agenda & Eventos
+          </h2>
+        </div>
+        
+        <DashboardCalendar />
+      </section>
+
     </div>
   );
 }

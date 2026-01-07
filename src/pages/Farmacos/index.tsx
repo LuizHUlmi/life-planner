@@ -1,207 +1,266 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
-import { Save, Plus, Trash2, Syringe, Pill } from 'lucide-react';
+import { Select } from '../../components/ui/Select';
+import { 
+  Plus, Pill, Zap, Leaf, Archive, Minus, Trash2, AlertTriangle 
+} from 'lucide-react';
 
-// Tipagem para os Hormônios
-interface HormoneItem {
+interface Pharmac {
   id: number;
-  substance: string;    // Nome do Hormônio
-  totalDose: string;    // Dose Semanal Total
-  app1: string;         // Aplicação 1
-  app2: string;         // Aplicação 2
-  app3: string;         // Aplicação 3
-  app4: string;         // Aplicação 4
-}
-
-// Tipagem para os Manipulados
-interface SupplementItem {
-  id: number;
-  compound: string;     // Composto
-  dose: string;         // Dose
-  time: string;         // Horário
-  function: string;     // Função
+  name: string;
+  dosage: string;
+  category: string;
+  frequency: string;
+  stock: number;
+  is_active: boolean;
 }
 
 export function Farmacos() {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
   
-  // Estado para Hormônios (Começa com 1 linha vazia)
-  const [hormones, setHormones] = useState<HormoneItem[]>([
-    { id: 1, substance: '', totalDose: '', app1: '', app2: '', app3: '', app4: '' }
-  ]);
+  // Lista
+  const [items, setItems] = useState<Pharmac[]>([]);
+  
+  // Form
+  const [name, setName] = useState('');
+  const [dosage, setDosage] = useState('');
+  const [category, setCategory] = useState('suplemento');
+  const [frequency, setFrequency] = useState('');
+  const [stock, setStock] = useState('30');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Estado para Manipulados (Começa com 1 linha vazia)
-  const [supplements, setSupplements] = useState<SupplementItem[]>([
-    { id: 1, compound: '', dose: '', time: '', function: '' }
-  ]);
+  // 1. CARREGAR DADOS
+  useEffect(() => {
+    fetchItems();
+  }, [user]);
 
-  // --- Handlers para Hormônios ---
-  const addHormone = () => {
-    const newId = hormones.length > 0 ? Math.max(...hormones.map(h => h.id)) + 1 : 1;
-    setHormones([...hormones, { id: newId, substance: '', totalDose: '', app1: '', app2: '', app3: '', app4: '' }]);
-  };
+  async function fetchItems() {
+    if (!user) return;
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('pharmacs')
+        .select('*')
+        .order('is_active', { ascending: false }) // Ativos primeiro
+        .order('stock', { ascending: true });     // Stock baixo primeiro
 
-  const removeHormone = (id: number) => {
-    if (hormones.length > 1) {
-      setHormones(hormones.filter(h => h.id !== id));
+      if (error) throw error;
+      setItems(data || []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // 2. ADICIONAR NOVO
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !user) return;
+
+    try {
+      setIsSubmitting(true);
+      const payload = {
+        user_id: user.id,
+        name,
+        dosage,
+        category,
+        frequency,
+        stock: Number(stock),
+        is_active: true
+      };
+
+      const { data, error } = await supabase.from('pharmacs').insert([payload]).select().single();
+      if (error) throw error;
+
+      if (data) setItems([data, ...items]);
+      
+      // Limpar campos
+      setName('');
+      setDosage('');
+      setFrequency('');
+      setStock('30');
+    } catch (error) {
+      alert('Erro ao adicionar.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // --- Handlers para Manipulados ---
-  const addSupplement = () => {
-    const newId = supplements.length > 0 ? Math.max(...supplements.map(s => s.id)) + 1 : 1;
-    setSupplements([...supplements, { id: newId, compound: '', dose: '', time: '', function: '' }]);
+  // 3. AÇÕES RÁPIDAS (STOCK E ESTADO)
+  const updateStock = async (id: number, currentStock: number, delta: number) => {
+    const newStock = Math.max(0, currentStock + delta);
+    
+    // Atualização Otimista (Visual)
+    setItems(items.map(i => i.id === id ? { ...i, stock: newStock } : i));
+
+    // Atualização no Banco
+    await supabase.from('pharmacs').update({ stock: newStock }).eq('id', id);
   };
 
-  const removeSupplement = (id: number) => {
-    if (supplements.length > 1) {
-      setSupplements(supplements.filter(s => s.id !== id));
+  const toggleActive = async (id: number, currentStatus: boolean) => {
+    setItems(items.map(i => i.id === id ? { ...i, is_active: !currentStatus } : i));
+    await supabase.from('pharmacs').update({ is_active: !currentStatus }).eq('id', id);
+  };
+
+  const remove = async (id: number) => {
+    if (!confirm('Remover permanentemente?')) return;
+    setItems(items.filter(i => i.id !== id));
+    await supabase.from('pharmacs').delete().eq('id', id);
+  };
+
+  // Helper de ícone
+  const getIcon = (cat: string) => {
+    switch (cat) {
+      case 'medicamento': return <Pill size={20} />;
+      case 'fitoterapico': return <Leaf size={20} />;
+      default: return <Zap size={20} />;
     }
   };
+
+  const activeItems = items.filter(i => i.is_active);
+  const inactiveItems = items.filter(i => !i.is_active);
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
       
       <header style={{ marginBottom: '2rem' }}>
         <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-          Farmacologia
+          Protocolo & Suplementação
         </h1>
         <p style={{ color: 'var(--text-secondary)' }}>
-          Gestão de protocolo hormonal e suplementação.
+          Controlo de doses e stock.
         </p>
       </header>
 
-      <form onSubmit={(e) => e.preventDefault()}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem', alignItems: 'start' }}>
         
-        {/* --- SEÇÃO 1: HORMONAL --- */}
-        <section style={{ marginBottom: '2rem' }}>
+        {/* --- FORMULÁRIO (ESQUERDA) --- */}
+        <div style={{ position: 'sticky', top: '20px' }}>
           <Card>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <Syringe color="var(--primary)" size={24} />
-                <h2 style={{ fontSize: '1.2rem', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
-                  Protocolo Hormonal (Semanal)
-                </h2>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem' }}>Novo Item</h3>
+            <form onSubmit={handleAdd} style={{ display: 'grid', gap: '1rem' }}>
+              <Input label="Nome" placeholder="Ex: Creatina" value={name} onChange={e => setName(e.target.value)} disabled={isSubmitting} />
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <Input label="Dose" placeholder="5g" value={dosage} onChange={e => setDosage(e.target.value)} disabled={isSubmitting} />
+                <Input type="number" label="Stock (Qtd)" value={stock} onChange={e => setStock(e.target.value)} disabled={isSubmitting} />
               </div>
-              <div style={{ width: '200px' }}>
-                <Input type="date" label="Semana de:" defaultValue={new Date().toISOString().split('T')[0]} />
-              </div>
-            </div>
 
-            {/* Cabeçalho Desktop */}
-            <div className="desktop-headers" style={{ 
-                display: 'grid', 
-                gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr 40px', 
-                gap: '1rem',
-                marginBottom: '0.5rem',
-                padding: '0 0.5rem'
-            }}>
-               <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Hormônio</span>
-               <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Dose Total</span>
-               <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Aplic. 1</span>
-               <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Aplic. 2</span>
-               <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Aplic. 3</span>
-               <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Aplic. 4</span>
-            </div>
+              <Input label="Frequência / Horário" placeholder="Ex: Pós-treino" value={frequency} onChange={e => setFrequency(e.target.value)} disabled={isSubmitting} />
+              
+              <Select 
+                label="Categoria"
+                value={category}
+                onChange={e => setCategory(e.target.value)}
+                options={[
+                  { value: 'suplemento', label: 'Suplemento' },
+                  { value: 'medicamento', label: 'Medicamento' },
+                  { value: 'fitoterapico', label: 'Fitoterápico' },
+                ]}
+              />
 
-            <style>{`
-              @media (max-width: 1023px) {
-                .desktop-headers { display: none !important; }
-                .hormone-row { display: flex; flex-direction: column; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; marginBottom: 1rem; }
-              }
-              @media (min-width: 1024px) {
-                .hormone-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 40px; gap: 1rem; align-items: end; }
-              }
-            `}</style>
-
-            {hormones.map((item) => (
-              <div key={item.id} className="hormone-row">
-                <Input placeholder="Ex: Enantato de Testo" defaultValue={item.substance} label="Hormônio (Mobile)" className="mobile-label-input" />
-                <Input placeholder="Ex: 500mg" defaultValue={item.totalDose} label="Dose Total (Mobile)" />
-                <Input placeholder="Seg" defaultValue={item.app1} label="Aplic 1 (Mobile)" />
-                <Input placeholder="Qua" defaultValue={item.app2} label="Aplic 2 (Mobile)" />
-                <Input placeholder="Sex" defaultValue={item.app3} label="Aplic 3 (Mobile)" />
-                <Input placeholder="Dom" defaultValue={item.app4} label="Aplic 4 (Mobile)" />
-                
-                <button type="button" onClick={() => removeHormone(item.id)} style={{ border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.5rem' }}>
-                  <Trash2 size={18} className="hover:text-red-500" />
-                </button>
-              </div>
-            ))}
-
-            <div style={{ marginTop: '1rem' }}>
-              <Button type="button" variant="secondary" onClick={addHormone} style={{ borderStyle: 'dashed' }}>
-                <Plus size={16} /> Adicionar Hormônio
+              <Button type="submit" fullWidth disabled={isSubmitting}>
+                <Plus size={18} /> Adicionar
               </Button>
-            </div>
+            </form>
           </Card>
-        </section>
-
-        {/* --- SEÇÃO 2: MANIPULADOS --- */}
-        <section>
-          <Card>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
-              <Pill color="var(--primary)" size={24} />
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>
-                Manipulados & Fitoterápicos
-              </h2>
-            </div>
-
-            {/* Cabeçalho Desktop */}
-            <div className="desktop-headers-supp" style={{ 
-                display: 'grid', 
-                gridTemplateColumns: '2fr 1fr 1fr 2fr 40px', 
-                gap: '1rem',
-                marginBottom: '0.5rem',
-                padding: '0 0.5rem'
-            }}>
-               <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Composto</span>
-               <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Dose</span>
-               <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Horário</span>
-               <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Função</span>
-            </div>
-
-            <style>{`
-              @media (max-width: 1023px) {
-                .desktop-headers-supp { display: none !important; }
-                .supp-row { display: flex; flex-direction: column; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; marginBottom: 1rem; }
-              }
-              @media (min-width: 1024px) {
-                .supp-row { display: grid; grid-template-columns: 2fr 1fr 1fr 2fr 40px; gap: 1rem; align-items: end; }
-              }
-            `}</style>
-
-            {supplements.map((item) => (
-              <div key={item.id} className="supp-row">
-                <Input placeholder="Ex: Creatina" defaultValue={item.compound} label="Composto" />
-                <Input placeholder="Ex: 5g" defaultValue={item.dose} label="Dose" />
-                <Input type="time" defaultValue={item.time} label="Horário" />
-                <Input placeholder="Ex: Força/Cognição" defaultValue={item.function} label="Função" />
-                
-                <button type="button" onClick={() => removeSupplement(item.id)} style={{ border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.5rem' }}>
-                  <Trash2 size={18} className="hover:text-red-500" />
-                </button>
-              </div>
-            ))}
-
-            <div style={{ marginTop: '1rem' }}>
-              <Button type="button" variant="secondary" onClick={addSupplement} style={{ borderStyle: 'dashed' }}>
-                <Plus size={16} /> Adicionar Item
-              </Button>
-            </div>
-          </Card>
-        </section>
-
-        {/* Botão Salvar Geral */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
-          <Button type="submit" variant="primary" style={{ paddingLeft: '2rem', paddingRight: '2rem' }}>
-            <Save size={18} />
-            Salvar Protocolo
-          </Button>
         </div>
 
-      </form>
+        {/* --- LISTA (DIREITA) --- */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          
+          {/* ATIVOS */}
+          <section>
+            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Zap size={16} /> Em Uso
+            </h3>
+            
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              {activeItems.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '2rem', border: '2px dashed var(--border-color)', borderRadius: '12px', color: 'var(--text-secondary)' }}>
+                  Nenhum protocolo ativo.
+                </div>
+              ) : (
+                activeItems.map(item => (
+                  <Card key={item.id} style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: item.stock < 7 ? '4px solid #f59e0b' : '4px solid #10b981' }}>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div style={{ padding: '0.8rem', backgroundColor: 'var(--bg-page)', borderRadius: '12px', color: 'var(--text-primary)' }}>
+                        {getIcon(item.category)}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '1.05rem', color: 'var(--text-primary)' }}>{item.name}</div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                          {item.dosage} • {item.frequency}
+                        </div>
+                        {item.stock < 7 && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: '#f59e0b', marginTop: '0.4rem', fontWeight: 600 }}>
+                            <AlertTriangle size={12} /> Stock Baixo
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'end', gap: '0.5rem' }}>
+                      {/* Controlos de Stock */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#f8fafc', padding: '4px', borderRadius: '8px' }}>
+                        <button onClick={() => updateStock(item.id, item.stock, -1)} style={{ width: '24px', height: '24px', border: 'none', background: 'white', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
+                          <Minus size={14} />
+                        </button>
+                        <span style={{ fontSize: '0.9rem', fontWeight: 600, minWidth: '24px', textAlign: 'center' }}>{item.stock}</span>
+                        <button onClick={() => updateStock(item.id, item.stock, 1)} style={{ width: '24px', height: '24px', border: 'none', background: 'white', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
+                          <Plus size={14} />
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => toggleActive(item.id, item.is_active)} style={{ fontSize: '0.75rem', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-secondary)', textDecoration: 'underline' }}>
+                          Arquivar
+                        </button>
+                      </div>
+                    </div>
+
+                  </Card>
+                ))
+              )}
+            </div>
+          </section>
+
+          {/* INATIVOS / HISTÓRICO */}
+          {inactiveItems.length > 0 && (
+            <section>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Archive size={16} /> Histórico
+              </h3>
+              <div style={{ display: 'grid', gap: '0.8rem', opacity: 0.7 }}>
+                {inactiveItems.map(item => (
+                  <Card key={item.id} style={{ padding: '0.8rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f9fafb' }}>
+                    <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+                       <div style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{item.name}</div>
+                       <span style={{ fontSize: '0.8rem', padding: '2px 6px', backgroundColor: '#e2e8f0', borderRadius: '4px', color: '#64748b' }}>{item.category}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                      <button onClick={() => toggleActive(item.id, item.is_active)} style={{ fontSize: '0.8rem', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--primary)', fontWeight: 600 }}>
+                        Reativar
+                      </button>
+                      <button onClick={() => remove(item.id)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#cbd5e1' }}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </section>
+          )}
+
+        </div>
+      </div>
     </div>
   );
 }
