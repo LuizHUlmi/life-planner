@@ -5,7 +5,7 @@ import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { 
-  CheckCircle2, Circle, Plus, Calendar, Trash2, Zap 
+  CheckCircle2, Circle, Plus, Trash2, Zap 
 } from 'lucide-react';
 
 interface Habit {
@@ -22,7 +22,7 @@ export function Rotina() {
   
   const [habits, setHabits] = useState<Habit[]>([]);
   const [completedIds, setCompletedIds] = useState<number[]>([]); // Lista de IDs feitos hoje
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
 
   // Estado para criar novo hábito
   const [newHabit, setNewHabit] = useState('');

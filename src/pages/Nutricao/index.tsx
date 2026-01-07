@@ -36,7 +36,7 @@ interface WeeklyGroup {
 
 export function Nutricao() {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'plans' | 'history'>('plans');
 
   // --- ESTADOS: PLANOS ---

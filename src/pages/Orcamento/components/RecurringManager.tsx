@@ -19,7 +19,7 @@ interface RecurringExpense {
 export function RecurringManager({ onTransactionAdded }: { onTransactionAdded: () => void }) {
   const { user } = useAuth();
   const [items, setItems] = useState<RecurringExpense[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [] = useState(false);
   const [processing, setProcessing] = useState(false);
 
   // Form

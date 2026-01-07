@@ -12,7 +12,7 @@ import { DashboardCalendar } from './components/DashboardCalendar'; // Calendár
 // Ícones
 import { 
   Wallet, Activity, Calendar as CalendarIcon, 
-  ArrowRight, TrendingUp, PenLine, Dumbbell, Utensils, CheckCircle2 
+  PenLine, Dumbbell, Utensils, CheckCircle2 
 } from 'lucide-react';
 import { HabitMatrix } from './components/HabitMatrix';
 
@@ -31,7 +31,7 @@ export function Dashboard() {
   // Estado do Último Treino
   const [lastWorkout, setLastWorkout] = useState<{ date: string, type: string, exercises: number } | null>(null);
 
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) fetchDashboardData();

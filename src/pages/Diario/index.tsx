@@ -8,8 +8,8 @@ import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { 
-  Save, Calendar, Loader2, PenLine, History, 
-  Scale, Moon, Heart, Utensils, Dumbbell, ChevronDown, ChevronUp, Plus, Trash2, Flame
+  Save, Loader2, PenLine, History, 
+  Moon, Heart, Utensils, Dumbbell, ChevronDown, ChevronUp, Plus, Trash2, Flame
 } from 'lucide-react';
 
 import { DiaryHistory } from './components/DiaryHistory';
