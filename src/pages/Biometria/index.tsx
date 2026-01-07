@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 
+// Estilos
+import styles from './Biometria.module.css';
+
 // Gráficos
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -62,14 +65,13 @@ export function Biometria() {
     }
   }, [user]);
 
-  // Busca histórico de biometria
   async function fetchMeasurements() {
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('body_measurements')
         .select('*')
-        .order('date', { ascending: true }); // Crescente para o gráfico
+        .order('date', { ascending: true });
 
       if (error) throw error;
       setHistory(data || []);
@@ -80,7 +82,6 @@ export function Biometria() {
     }
   }
 
-  // Busca peso do Diário (daily_logs) para preencher automaticamente se já existir
   async function fetchTodayWeightFromDiary() {
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -98,7 +99,7 @@ export function Biometria() {
     }
   }
 
-  // 2. SALVAR MEDIDAS (E SINCRONIZAR COM DIÁRIO)
+  // 2. SALVAR MEDIDAS
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -121,7 +122,6 @@ export function Biometria() {
         calves: Number(calves) || null,
       };
 
-      // A. Salva na tabela de Biometria
       const { data, error } = await supabase
         .from('body_measurements')
         .insert([payload])
@@ -130,7 +130,7 @@ export function Biometria() {
 
       if (error) throw error;
 
-      // B. Sincroniza o PESO na tabela de Diário (daily_logs)
+      // Sincroniza o PESO no Diário
       if (payload.weight) {
         await supabase.from('daily_logs').upsert({
           user_id: user.id,
@@ -143,7 +143,7 @@ export function Biometria() {
         setHistory([...history, data].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
       }
       
-      alert('Medidas salvas e peso sincronizado com o Diário!');
+      alert('Medidas salvas com sucesso!');
       
     } catch (error) {
       alert('Erro ao salvar.');
@@ -157,34 +157,29 @@ export function Biometria() {
     setHistory(history.filter(h => h.id !== id));
   };
 
-  // Dados formatados para o gráfico
+  // Prepara dados para o gráfico
   const chartData = history.map(h => ({
     ...h,
     displayDate: new Date(h.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
   }));
 
-  // Inverte histórico para a tabela (mais recente primeiro)
   const reversedHistory = [...history].reverse();
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div className={styles.container}>
       
-      <header style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-          Biometria & Medidas
-        </h1>
-        <p style={{ color: 'var(--text-secondary)' }}>
-          Acompanhe a evolução do seu físico.
-        </p>
+      <header className={styles.header}>
+        <h1 className={styles.title}>Biometria & Medidas</h1>
+        <p className={styles.subtitle}>Acompanhe a evolução do seu físico.</p>
       </header>
 
-      {/* --- 1. GRÁFICO DE EVOLUÇÃO --- */}
+      {/* --- 1. GRÁFICO --- */}
       {history.length > 1 && (
-        <Card style={{ marginBottom: '2rem', padding: '1.5rem' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <Card className={styles.card}>
+          <h3 className={styles.cardTitle}>
             <TrendingUp size={20} color="var(--primary)" /> Evolução: Peso vs Cintura
           </h3>
-          <div style={{ width: '100%', height: 300 }}>
+          <div className={styles.chartContainer}>
             <ResponsiveContainer>
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -201,110 +196,106 @@ export function Biometria() {
         </Card>
       )}
 
-      {/* --- 2. FORMULÁRIO DE NOVA MEDIDA --- */}
-      <Card style={{ marginBottom: '2rem' }}>
+      {/* --- 2. FORMULÁRIO --- */}
+      <Card className={styles.card}>
         <form onSubmit={handleSave}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className={styles.formHeader}>
+            <h3 className={styles.cardTitle} style={{ marginBottom: 0 }}>
               <Plus size={18} /> Novo Registro
             </h3>
-            <div style={{ width: '160px' }}>
+            <div className={styles.dateWrapper}>
                 <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
             </div>
           </div>
 
-          {/* Grid Peso e Gordura */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
-              <Input label="Peso (kg)" type="number" step="0.05" value={weight} onChange={e => setWeight(e.target.value)}  placeholder="Sincronizado c/ Diário" />
-              <Input label="% Gordura (BF)" type="number" step="0.1" value={bodyFat} onChange={e => setBodyFat(e.target.value)}  />
+          {/* Grid Principal */}
+          <div className={styles.mainStatsGrid}>
+              <Input label="Peso (kg)" type="number" step="0.05" value={weight} onChange={e => setWeight(e.target.value)} placeholder="Sinc. Diário" />
+              <Input label="% Gordura" type="number" step="0.1" value={bodyFat} onChange={e => setBodyFat(e.target.value)} />
           </div>
 
-          {/* Medidas Superiores */}
-          <h4 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '1rem', textTransform: 'uppercase' }}>Superiores</h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+          {/* Superiores */}
+          <h4 className={styles.sectionTitle}>Superiores</h4>
+          <div className={styles.measurementsGrid}>
             <Input label="Ombros" placeholder="cm" value={shoulders} onChange={e => setShoulders(e.target.value)} />
             <Input label="Peitoral" placeholder="cm" value={chest} onChange={e => setChest(e.target.value)} />
             <Input label="Braço Esq." placeholder="cm" value={leftArm} onChange={e => setLeftArm(e.target.value)} />
             <Input label="Braço Dir." placeholder="cm" value={rightArm} onChange={e => setRightArm(e.target.value)} />
           </div>
 
-          {/* Medidas Centrais */}
-          <h4 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '1rem', textTransform: 'uppercase' }}>Tronco</h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-            <Input label="Cintura (Umbigo)" placeholder="cm" value={waist} onChange={e => setWaist(e.target.value)} />
+          {/* Tronco */}
+          <h4 className={styles.sectionTitle}>Tronco</h4>
+          <div className={styles.measurementsGrid}>
+            <Input label="Cintura" placeholder="cm" value={waist} onChange={e => setWaist(e.target.value)} />
             <Input label="Abdômen" placeholder="cm" value={abdomen} onChange={e => setAbdomen(e.target.value)} />
             <Input label="Quadril" placeholder="cm" value={hips} onChange={e => setHips(e.target.value)} />
           </div>
 
-          {/* Medidas Inferiores */}
-          <h4 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '1rem', textTransform: 'uppercase' }}>Inferiores</h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+          {/* Inferiores */}
+          <h4 className={styles.sectionTitle}>Inferiores</h4>
+          <div className={`${styles.measurementsGrid} ${styles.lastGrid}`}>
             <Input label="Coxa Esq." placeholder="cm" value={leftThigh} onChange={e => setLeftThigh(e.target.value)} />
             <Input label="Coxa Dir." placeholder="cm" value={rightThigh} onChange={e => setRightThigh(e.target.value)} />
             <Input label="Panturrilha" placeholder="cm" value={calves} onChange={e => setCalves(e.target.value)} />
           </div>
 
-          <Button type="submit" fullWidth>
-            Salvar Medidas
-          </Button>
+          <Button type="submit" fullWidth>Salvar Medidas</Button>
         </form>
       </Card>
 
-      {/* --- 3. HISTÓRICO EM TABELA COMPLETA --- */}
-      <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--text-primary)' }}>
-        Histórico Completo
-      </h3>
+      {/* --- 3. HISTÓRICO --- */}
+      <h3 className={styles.historyTitle}>Histórico Completo</h3>
       
-      <Card style={{ padding: 0, overflow: 'hidden' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '1200px' }}>
-            <thead style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid var(--border-color)' }}>
+      <Card className={styles.tableCard}>
+        <div className={styles.tableContainer}>
+          <table className={styles.table}>
+            <thead>
               <tr>
-                <th style={thStyle}>Data</th>
-                <th style={thStyle}>Peso</th>
-                <th style={thStyle}>BF %</th>
-                <th style={thStyle}>Ombro</th>
-                <th style={thStyle}>Peito</th>
-                <th style={thStyle}>Braço (E/D)</th>
-                <th style={thStyle}>Cintura</th>
-                <th style={thStyle}>Abdômen</th>
-                <th style={thStyle}>Quadril</th>
-                <th style={thStyle}>Coxa (E/D)</th>
-                <th style={thStyle}>Pantur.</th>
-                <th style={thStyle}></th>
+                <th>Data</th>
+                <th>Peso</th>
+                <th>BF %</th>
+                <th>Ombro</th>
+                <th>Peito</th>
+                <th>Braço (E/D)</th>
+                <th>Cintura</th>
+                <th>Abdômen</th>
+                <th>Quadril</th>
+                <th>Coxa (E/D)</th>
+                <th>Pantur.</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={12} style={{ padding: '2rem', textAlign: 'center' }}><Loader2 className="animate-spin" style={{ margin: '0 auto' }} /></td></tr>
+                <tr><td colSpan={12} style={{ textAlign: 'center', padding: '2rem' }}><Loader2 className="animate-spin" style={{ margin: '0 auto' }} /></td></tr>
               ) : reversedHistory.length === 0 ? (
-                <tr><td colSpan={12} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Nenhum registro.</td></tr>
+                <tr><td colSpan={12} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>Nenhum registro encontrado.</td></tr>
               ) : (
                 reversedHistory.map((item) => (
-                  <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={tdStyle}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+                  <tr key={item.id}>
+                    <td>
+                      <div className={styles.dateCell}>
                         <Calendar size={14} color="var(--primary)" />
                         {new Date(item.date).toLocaleDateString('pt-BR')}
                       </div>
                     </td>
-                    <td style={tdStyle}>{item.weight ? <b>{item.weight} kg</b> : '-'}</td>
-                    <td style={tdStyle}>{item.body_fat ? `${item.body_fat}%` : '-'}</td>
-                    <td style={tdStyle}>{item.shoulders || '-'}</td>
-                    <td style={tdStyle}>{item.chest || '-'}</td>
-                    <td style={tdStyle}>
-                      {item.left_arm || '-'} <span style={{color:'#94a3b8'}}>/</span> {item.right_arm || '-'}
+                    <td>{item.weight ? <b className={styles.highlight}>{item.weight} kg</b> : '-'}</td>
+                    <td>{item.body_fat ? `${item.body_fat}%` : '-'}</td>
+                    <td>{item.shoulders || '-'}</td>
+                    <td>{item.chest || '-'}</td>
+                    <td>
+                      {item.left_arm || '-'} <span className={styles.separator}>/</span> {item.right_arm || '-'}
                     </td>
-                    <td style={{ ...tdStyle, color: '#ef4444', fontWeight: 600 }}>{item.waist || '-'}</td>
-                    <td style={tdStyle}>{item.abdomen || '-'}</td>
-                    <td style={tdStyle}>{item.hips || '-'}</td>
-                    <td style={tdStyle}>
-                      {item.left_thigh || '-'} <span style={{color:'#94a3b8'}}>/</span> {item.right_thigh || '-'}
+                    <td className={styles.alert}>{item.waist || '-'}</td>
+                    <td>{item.abdomen || '-'}</td>
+                    <td>{item.hips || '-'}</td>
+                    <td>
+                      {item.left_thigh || '-'} <span className={styles.separator}>/</span> {item.right_thigh || '-'}
                     </td>
-                    <td style={tdStyle}>{item.calves || '-'}</td>
-                    <td style={tdStyle}>
-                      <button onClick={() => handleDelete(item.id)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#cbd5e1' }}>
-                        <Trash2 size={16} className="hover:text-red-500" />
+                    <td>{item.calves || '-'}</td>
+                    <td>
+                      <button onClick={() => handleDelete(item.id)} className={styles.deleteBtn}>
+                        <Trash2 size={16} />
                       </button>
                     </td>
                   </tr>
@@ -317,7 +308,3 @@ export function Biometria() {
     </div>
   );
 }
-
-// Estilos da Tabela
-const thStyle: React.CSSProperties = { padding: '1rem 0.8rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', whiteSpace: 'nowrap' };
-const tdStyle: React.CSSProperties = { padding: '1rem 0.8rem', fontSize: '0.85rem', color: 'var(--text-primary)', whiteSpace: 'nowrap' };
