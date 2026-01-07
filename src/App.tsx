@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"; // Ad
 import { DefaultLayout } from "./components/layout/DefaultLayout";
 import { AuthProvider, useAuth } from "./contexts/AuthContext"; // <--- Importe aqui
 
-// ... Imports das suas páginas (Dashboard, Diario, etc) ...
+
 import { Login } from "./pages/Login"; // Vamos criar essa página já já
 import { Dashboard } from "./pages/Dashboard";
 import { Diario } from "./pages/Diario";
