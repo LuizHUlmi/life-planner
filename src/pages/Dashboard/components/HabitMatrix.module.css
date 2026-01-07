@@ -1,0 +1,139 @@
+/* src/pages/Dashboard/components/HabitMatrix.module.css */
+
+.card {
+  overflow: hidden;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  background-color: #f8fafc;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: capitalize;
+}
+
+.navGroup {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.navBtn {
+  border: 1px solid var(--border-color);
+  background-color: white;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.navBtn:hover {
+  background-color: var(--bg-page);
+  color: var(--primary);
+}
+
+/* Container da Tabela com Scroll */
+.tableContainer {
+  overflow-x: auto; /* Permite scroll horizontal */
+  padding-bottom: 0.5rem;
+  width: 100%;
+  -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
+}
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 600px; /* Garante que a tabela não esmague */
+}
+
+/* Coluna Fixa (Sticky) */
+.stickyHeader, .stickyCol {
+  position: sticky;
+  left: 0;
+  z-index: 20;
+  background-color: white; /* Importante para não ficar transparente */
+  border-right: 1px solid #f1f5f9;
+}
+
+.stickyHeader {
+  z-index: 30; /* Fica acima da stickyCol */
+  min-width: 140px;
+  text-align: left;
+  padding-left: 1.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.stickyCol {
+  padding: 0.6rem 0.5rem 0.6rem 1.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+/* Células de Dias */
+.dayHeader {
+  min-width: 34px;
+  text-align: center;
+  font-size: 0.7rem;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 0.5rem 0;
+}
+
+.dayCell {
+  text-align: center;
+  padding: 0.3rem;
+}
+
+/* Indicadores Visuais */
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin: 0 auto;
+}
+
+.checkContainer {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  margin: 0 auto;
+  background-color: #22c55e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .header {
+    padding: 1rem;
+  }
+  
+  .stickyHeader, .stickyCol {
+    padding-left: 1rem; /* Menos padding na esquerda */
+    min-width: 110px;
+    font-size: 0.75rem;
+  }
+}
