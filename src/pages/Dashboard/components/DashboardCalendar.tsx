@@ -5,7 +5,7 @@ import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { ChevronLeft, ChevronRight, Plus, Clock, Trash2, X } from 'lucide-react';
-import styles from './DashboardCalendar.module.css';
+import styles from './DashboardCalendar.module.css'; // CSS Module
 
 interface CalendarEvent {
   id: number;
@@ -78,7 +78,7 @@ export function DashboardCalendar() {
 
   return (
     <div className={styles.wrapper}>
-      {/* CALENDÁRIO */}
+      {/* 1. CALENDÁRIO VISUAL */}
       <Card className={styles.calendarCard}>
         <div className={styles.header}>
           <span className={styles.monthTitle}>{monthName}</span>
@@ -95,7 +95,8 @@ export function DashboardCalendar() {
         </div>
 
         <div className={styles.daysGrid}>
-          {blanksArray.map(b => <div key={`blank-${b}`} className={styles.dayCell} style={{ backgroundColor: '#fcfcfc' }} />)}
+          {blanksArray.map(b => <div key={`blank-${b}`} style={{ backgroundColor: '#fcfcfc' }} />)}
+          
           {daysArray.map(day => {
             const dateStr = new Date(year, month, day).toLocaleDateString('en-CA');
             const dayEvents = events.filter(e => e.date === dateStr);
@@ -107,12 +108,13 @@ export function DashboardCalendar() {
                 className={`${styles.dayCell} ${isSelected ? styles.selected : ''}`}
               >
                 <div className={`${styles.dayNumber} ${isToday ? styles.today : ''}`}>{day}</div>
+                
                 <div className={styles.eventList}>
                   {dayEvents.slice(0, 3).map(ev => (
                     <div key={ev.id} className={styles.eventBadge}>{ev.title}</div>
                   ))}
                   {dayEvents.length > 3 && (
-                    <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)' }}>+</div>
+                    <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)', textAlign: 'center' }}>+</div>
                   )}
                 </div>
               </div>
@@ -121,7 +123,7 @@ export function DashboardCalendar() {
         </div>
       </Card>
 
-      {/* PAINEL LATERAL */}
+      {/* 2. PAINEL DE DETALHES (Aparece ao clicar num dia) */}
       {selectedDate && (
         <Card className={styles.sidePanel}>
           <div className={styles.panelHeader}>
@@ -133,7 +135,9 @@ export function DashboardCalendar() {
 
           <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
             {selectedDayEvents.length === 0 ? (
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>Nada agendado.</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontStyle: 'italic', textAlign: 'center', padding: '1rem' }}>
+                Nada agendado para hoje.
+              </div>
             ) : (
               selectedDayEvents.map(ev => (
                 <div key={ev.id} className={styles.eventItem}>
@@ -141,11 +145,11 @@ export function DashboardCalendar() {
                     <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{ev.title}</div>
                     {ev.time && (
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Clock size={10} /> {ev.time}
+                        <Clock size={12} /> {ev.time}
                       </div>
                     )}
                   </div>
-                  <button onClick={() => deleteEvent(ev.id)} className={styles.deleteBtn}><Trash2 size={14} /></button>
+                  <button onClick={() => deleteEvent(ev.id)} className={styles.deleteBtn}><Trash2 size={16} /></button>
                 </div>
               ))
             )}

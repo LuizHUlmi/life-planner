@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 // Estilos
 import styles from './Dashboard.module.css';
 
-// Componentes Visuais
+// Componentes
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { DashboardCalendar } from './components/DashboardCalendar';
@@ -43,7 +43,7 @@ export function Dashboard() {
       const totalWealth = assets?.reduce((acc, curr) => acc + curr.estimated_value, 0) || 0;
       setNetWorth(totalWealth);
 
-      // 2. DADOS DO DIÁRIO
+      // 2. DADOS DO DIÁRIO (Últimos 14 dias)
       const today = new Date();
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(today.getDate() - 7);
@@ -55,7 +55,7 @@ export function Dashboard() {
         .limit(14);
 
       if (recentLogs && recentLogs.length > 0) {
-        // Peso
+        // Peso (Pega o primeiro que encontrar)
         const weightLog = recentLogs.find(log => log.weight > 0);
         if (weightLog) setCurrentWeight(weightLog.weight);
 
@@ -70,7 +70,7 @@ export function Dashboard() {
           });
         }
 
-        // Consistência
+        // Consistência da Semana
         const weekLogs = recentLogs.filter(log => new Date(log.date) >= sevenDaysAgo);
         const workouts = weekLogs.filter(log => ['academia', 'alternativo'].includes(log.workout_type)).length;
         setWorkoutCount(workouts);
@@ -78,7 +78,7 @@ export function Dashboard() {
         setDietConsistency(dietDays);
       }
     } catch (error) {
-      console.error("Erro ao carregar dashboard", error);
+      console.error("Erro dashboard", error);
     } finally {
       setLoading(false);
     }
@@ -96,7 +96,7 @@ export function Dashboard() {
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
     if (date.toISOString().split('T')[0] === yesterday.toISOString().split('T')[0]) return 'Ontem';
-    return date.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' });
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
   };
 
   return (
@@ -106,7 +106,7 @@ export function Dashboard() {
       <header className={styles.header}>
         <div className={styles.titleGroup}>
           <h1>{greeting}, {firstName}.</h1>
-          <p>Resumo da sua performance recente.</p>
+          <p>Visão geral dos seus objetivos.</p>
         </div>
         
         <Button onClick={() => navigate('/diario')} className={styles.headerButton}>
@@ -114,7 +114,7 @@ export function Dashboard() {
         </Button>
       </header>
 
-      {/* --- BLOCO 1: KPIs --- */}
+      {/* --- BLOCO 1: KPIs (Cartões) --- */}
       <div className={styles.kpiGrid}>
         
         {/* KPI: Patrimônio */}
@@ -122,11 +122,10 @@ export function Dashboard() {
           className={`${styles.kpiCard} ${styles.kpiWealth}`} 
           onClick={() => navigate('/patrimonio')}
         >
-          <div className={styles.kpiLabel}>
-            <Wallet size={18} /> Patrimônio Líquido
-          </div>
+          <div className={styles.kpiLabel}><Wallet size={16} /> Patrimônio</div>
           <div className={styles.kpiValue}>
-            R$ {netWorth.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            <span style={{ fontSize: '1rem', marginRight: '2px' }}>R$</span>
+            {netWorth.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
           </div>
         </Card>
 
@@ -135,36 +134,30 @@ export function Dashboard() {
           className={`${styles.kpiCard} ${styles.kpiWeight}`} 
           onClick={() => navigate('/biometria')}
         >
-          <div className={styles.kpiLabel}>
-            <Activity size={18} /> Peso Atual
-          </div>
+          <div className={styles.kpiLabel}><Activity size={16} /> Peso</div>
           <div className={styles.kpiValue}>
-            {currentWeight ? `${currentWeight} kg` : '-- kg'}
+            {currentWeight ? currentWeight : '--'} <span style={{ fontSize: '1rem' }}>kg</span>
           </div>
         </Card>
 
-        {/* KPI: Consistência Dieta */}
+        {/* KPI: Dieta */}
         <Card 
           className={`${styles.kpiCard} ${styles.kpiDiet}`} 
           onClick={() => navigate('/nutricao')}
         >
-          <div className={styles.kpiLabel}>
-            <Utensils size={18} /> Dieta (7 dias)
-          </div>
+          <div className={styles.kpiLabel}><Utensils size={16} /> Dieta (7d)</div>
           <div className={styles.kpiValueContainer}>
              <span className={styles.kpiValue}>{dietConsistency}/7</span>
-             <span className={styles.kpiSubValue}>dias no foco</span>
+             <span className={styles.kpiSubValue}>dias</span>
           </div>
         </Card>
 
-        {/* KPI: Consistência Treino */}
+        {/* KPI: Treino */}
         <Card 
           className={`${styles.kpiCard} ${styles.kpiWorkout}`} 
           onClick={() => navigate('/diario?view=history')}
         >
-          <div className={styles.kpiLabel}>
-            <Dumbbell size={18} /> Treino (7 dias)
-          </div>
+          <div className={styles.kpiLabel}><Dumbbell size={16} /> Treino (7d)</div>
           <div className={styles.kpiValueContainer}>
              <span className={styles.kpiValue}>{workoutCount}</span>
              <span className={styles.kpiSubValue}>sessões</span>
@@ -173,7 +166,7 @@ export function Dashboard() {
 
       </div>
 
-      {/* --- BLOCO 2: MATRIZ DE HÁBITOS --- */}
+      {/* --- BLOCO 2: MATRIZ --- */}
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
            <h2 className={styles.sectionTitle}>
@@ -182,11 +175,12 @@ export function Dashboard() {
            {lastWorkout && (
               <div className={styles.lastWorkoutBadge}>
                  <CheckCircle2 size={14} /> 
-                 Último treino: <b>{formatDate(lastWorkout.date)}</b> ({lastWorkout.type})
+                 Último treino: <b>{formatDate(lastWorkout.date)}</b>
               </div>
            )}
         </div>
         
+        {/* Componente de Matriz (Certifique-se que o CSS dele também foi aplicado conforme passo anterior) */}
         <HabitMatrix />
       </section>
 
@@ -195,7 +189,7 @@ export function Dashboard() {
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>
             <CalendarIcon size={20} color="var(--primary)" />
-            Agenda & Eventos
+            Agenda
           </h2>
         </div>
         

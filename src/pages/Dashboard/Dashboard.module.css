@@ -1,9 +1,9 @@
 /* src/pages/Dashboard/Dashboard.module.css */
 
 .container {
-  max-width: 1200px;
+  max-width: 800px; /* Mantém consistência com Diário/Biometria */
   margin: 0 auto;
-  padding: 1rem; /* Adicionado padding para não colar nas bordas no mobile */
+  padding: 1rem;
   width: 100%;
 }
 
@@ -13,7 +13,6 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 1rem;
 }
 
 .titleGroup h1 {
@@ -25,21 +24,20 @@
 
 .titleGroup p {
   color: var(--text-secondary);
+  font-size: 0.9rem;
   margin-top: 0.25rem;
 }
 
-
-
-/* --- GRID DE KPIs --- */
+/* --- GRID DE KPIs (Cartões de Resumo) --- */
 .kpiGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); /* Flexível */
+  gap: 1rem;
   margin-bottom: 2rem;
 }
 
 .kpiCard {
-  padding: 1.5rem;
+  padding: 1.2rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -47,14 +45,15 @@
   transition: transform 0.2s, box-shadow 0.2s;
   border-left-width: 4px;
   border-left-style: solid;
+  position: relative;
+  overflow: hidden;
 }
 
-.kpiCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+.kpiCard:active {
+  transform: scale(0.98); /* Feedback de toque */
 }
 
-/* Cores das Bordas dos KPIs */
+/* Cores das Bordas */
 .kpiWealth { border-left-color: #f59e0b; }
 .kpiWeight { border-left-color: #3b82f6; }
 .kpiDiet { border-left-color: #10b981; }
@@ -65,25 +64,27 @@
   align-items: center;
   gap: 0.5rem;
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
+  text-transform: uppercase;
 }
 
 .kpiValueContainer {
   display: flex;
   align-items: baseline;
-  gap: 0.5rem;
+  gap: 4px;
 }
 
 .kpiValue {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .kpiSubValue {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
+  font-weight: 500;
 }
 
 /* --- SEÇÕES (Matriz e Agenda) --- */
@@ -93,61 +94,72 @@
 
 .sectionHeader {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 1rem;
   margin-bottom: 1rem;
-  flex-wrap: wrap; /* Permite quebrar linha se necessário */
 }
 
 .sectionTitle {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--text-primary);
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.6rem;
 }
 
-/* Badge do último treino */
+/* Badge do Último Treino */
 .lastWorkoutBadge {
-  margin-left: auto;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.8rem;
+  gap: 6px;
+  font-size: 0.75rem;
   background-color: #f0f9ff;
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: 20px;
   color: #0369a1;
   border: 1px solid #bae6fd;
-  white-space: nowrap;
 }
 
 /* --- RESPONSIVIDADE MOBILE --- */
-@media (max-width: 640px) {
+@media (max-width: 600px) {
   .header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1.5rem;
   }
 
+  .titleGroup h1 {
+    font-size: 1.6rem;
+  }
+
+  /* Botão ocupa largura total no mobile */
   .headerButton {
-    width: 100%; /* Botão ocupa largura total no mobile para facilitar o clique */
+    width: 100%;
     justify-content: center;
   }
 
+  /* KPIs ficam em 2 colunas (pequenos) para caber na tela sem scroll */
   .kpiGrid {
-    grid-template-columns: 1fr; /* Um card por linha em telas muito pequenas */
-    gap: 1rem;
+    grid-template-columns: 1fr 1fr; 
+    gap: 0.8rem;
+  }
+
+  .kpiCard {
+    padding: 1rem;
+  }
+  
+  .kpiValue {
+    font-size: 1.3rem; /* Um pouco menor para não quebrar */
   }
 
   .sectionHeader {
-    gap: 0.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
   }
 
   .lastWorkoutBadge {
-    margin-left: 0; /* Remove o auto para não forçar direita */
-    width: 100%; /* Ocupa linha inteira */
-    margin-top: 0.5rem;
+    align-self: flex-start;
   }
 }

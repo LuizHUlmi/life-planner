@@ -4,14 +4,13 @@
   display: flex;
   gap: 1.5rem;
   align-items: flex-start;
-  flex-wrap: wrap;
-  width: 100%; /* Garante que respeita o pai */
+  flex-wrap: wrap; /* O segredo para o mobile: permite quebrar linha */
 }
 
-/* Coluna Esquerda: Calendário */
+/* O Cartão do Calendário */
 .calendarCard {
   flex: 2;
-  min-width: 300px; /* Desktop */
+  min-width: 300px; /* Largura mínima para não quebrar os dias */
   padding: 0;
   overflow: hidden;
 }
@@ -28,6 +27,7 @@
 .monthTitle {
   font-weight: 700;
   text-transform: capitalize;
+  color: var(--text-primary);
 }
 
 .navGroup {
@@ -39,17 +39,19 @@
   border: 1px solid var(--border-color);
   background-color: white;
   border-radius: 6px;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  color: var(--text-secondary);
   transition: all 0.2s;
 }
 
 .navBtn:hover {
   background-color: var(--bg-page);
+  color: var(--primary);
 }
 
 /* Grids */
@@ -58,6 +60,7 @@
   grid-template-columns: repeat(7, 1fr);
   background-color: #f1f5f9;
   padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .weekDay {
@@ -70,17 +73,18 @@
 .daysGrid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  background-color: var(--border-color); /* Cria as linhas da grade */
+  gap: 1px; /* Espaço entre células */
 }
 
 .dayCell {
-  height: 80px;
-  border-bottom: 1px solid #f1f5f9;
-  border-right: 1px solid #f1f5f9;
+  background-color: white;
+  min-height: 80px;
   padding: 4px;
   cursor: pointer;
-  background-color: white;
   transition: background 0.2s;
-  overflow: hidden; /* Impede que texto estoure */
+  display: flex;
+  flex-direction: column;
 }
 
 .dayCell:hover {
@@ -88,21 +92,22 @@
 }
 
 .dayCell.selected {
-  background-color: #f0f9ff;
+  background-color: #eff6ff; /* Azul claro */
 }
 
 .dayNumber {
   font-size: 0.8rem;
-  margin-bottom: 2px;
   color: var(--text-secondary);
+  margin-bottom: 4px;
+  font-weight: 500;
 }
 
 .dayNumber.today {
-  font-weight: 700;
   color: var(--primary);
+  font-weight: 800;
 }
 
-/* Eventos dentro do dia */
+/* Eventos (Bolinhas/Badges) */
 .eventList {
   display: flex;
   flex-direction: column;
@@ -113,23 +118,24 @@
   font-size: 0.65rem;
   background-color: #e0e7ff;
   color: var(--primary);
-  padding: 1px 4px;
-  border-radius: 2px;
+  padding: 2px 4px;
+  border-radius: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Coluna Direita: Painel Lateral */
+/* Painel Lateral (Detalhes) */
 .sidePanel {
   flex: 1;
-  min-width: 250px;
+  min-width: 280px;
   padding: 1.5rem;
   border-left: 4px solid var(--primary);
-  animation: fadeIn 0.3s ease;
+  /* Animação suave ao aparecer */
+  animation: slideIn 0.3s ease;
 }
 
-@keyframes fadeIn {
+@keyframes slideIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
@@ -138,7 +144,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .closeBtn {
@@ -153,8 +159,9 @@
   justify-content: space-between;
   align-items: center;
   background-color: #f8fafc;
-  padding: 0.6rem;
-  border-radius: 6px;
+  padding: 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
 }
 
 .deleteBtn {
@@ -162,6 +169,7 @@
   background: transparent;
   cursor: pointer;
   color: #cbd5e1;
+  transition: color 0.2s;
 }
 
 .deleteBtn:hover {
@@ -169,45 +177,40 @@
 }
 
 /* --- MOBILE --- */
-@media (max-width: 640px) {
+@media (max-width: 600px) {
   .wrapper {
-    flex-direction: column; /* Empilha calendário e painel */
-    gap: 1rem;
+    flex-direction: column; /* Empilha verticalmente */
   }
 
   .calendarCard {
-    min-width: 100%; /* Ocupa 100% da tela */
+    width: 100%;
+    min-width: 0; /* Permite encolher se necessário */
   }
 
   .sidePanel {
-    min-width: 100%;
-    margin-top: 1rem;
+    width: 100%;
+    min-width: 0;
+    margin-top: 0.5rem;
   }
 
-  /* Ajustes nas Células para Mobile */
   .dayCell {
-    height: 50px; /* Células menores */
-    padding: 2px;
+    min-height: 50px; /* Células mais baixas no mobile */
   }
 
-  .dayNumber {
-    font-size: 0.7rem;
-  }
-
-  /* No mobile, em vez de texto, mostramos bolinhas coloridas para eventos */
+  /* No mobile, escondemos o texto do evento e mostramos só uma bolinha */
   .eventBadge {
     width: 6px;
     height: 6px;
     border-radius: 50%;
     padding: 0;
-    color: transparent; /* Esconde texto */
-    display: inline-block;
-    margin-right: 2px;
+    color: transparent;
+    margin-bottom: 2px;
+    align-self: center; /* Centraliza a bolinha */
   }
   
   .eventList {
     flex-direction: row; /* Bolinhas lado a lado */
-    flex-wrap: wrap;
     justify-content: center;
+    flex-wrap: wrap;
   }
 }

@@ -1,7 +1,7 @@
 /* src/pages/Biometria/Biometria.module.css */
 
 .container {
-  max-width: 1200px;
+  max-width: 800px; /* Igual ao Diário para manter consistência */
   margin: 0 auto;
   padding: 1rem;
   width: 100%;
@@ -10,194 +10,229 @@
 /* --- HEADER --- */
 .header {
   margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .title {
   font-size: 1.8rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 0.25rem;
 }
 
 .subtitle {
   color: var(--text-secondary);
+  font-size: 0.9rem;
 }
 
-/* --- CARTÕES E TÍTULOS --- */
+/* --- FORMULÁRIO --- */
 .card {
   margin-bottom: 2rem;
   padding: 1.5rem;
 }
 
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
 .cardTitle {
   font-size: 1.1rem;
   font-weight: 600;
-  margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-primary);
+  margin: 0;
 }
 
-.historyTitle {
+.dateInputWrapper {
+  width: 150px;
+}
+
+/* Grids do Formulário */
+.sectionTitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin: 1rem 0 0.8rem 0;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+/* Grid Inteligente: 2 colunas no PC, 1 no Mobile */
+.rowGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.measurementsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 por linha no desktop */
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+/* --- HISTÓRICO (Lógica Híbrida) --- */
+.historySectionTitle {
   font-size: 1.2rem;
   font-weight: 600;
   margin-bottom: 1rem;
   color: var(--text-primary);
 }
 
-/* --- GRÁFICO --- */
-.chartContainer {
-  width: 100%;
-  height: 300px;
-}
-
-/* --- FORMULÁRIO --- */
-.formHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap; /* Permite quebrar linha no mobile */
-  gap: 1rem;
-}
-
-.dateWrapper {
-  width: 160px;
-}
-
-/* Grid Principal (Peso e Gordura) */
-.mainStatsGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-/* Títulos das Seções de Medidas */
-.sectionTitle {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  margin-bottom: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* Grid de Inputs (Ombros, Braços, etc) */
-.measurementsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-/* Ajuste específico para o último grid antes do botão */
-.lastGrid {
-  margin-bottom: 2rem;
-}
-
-/* --- TABELA --- */
-.tableCard {
-  padding: 0;
-  overflow: hidden;
+/* Versão DESKTOP (Tabela) */
+.desktopOnly {
+  display: block;
 }
 
 .tableContainer {
   overflow-x: auto;
-  width: 100%;
-  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1000px; /* Força scroll horizontal se for menor que isso */
+  background-color: white;
+  min-width: 900px; /* Garante que não esmaga no PC */
 }
 
 .table th {
-  padding: 1rem 0.8rem;
-  text-align: left;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  white-space: nowrap;
   background-color: #f8fafc;
+  text-align: left;
+  padding: 1rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-secondary);
   border-bottom: 1px solid var(--border-color);
 }
 
 .table td {
-  padding: 1rem 0.8rem;
-  font-size: 0.85rem;
-  color: var(--text-primary);
-  white-space: nowrap;
+  padding: 1rem;
+  font-size: 0.9rem;
   border-bottom: 1px solid #f1f5f9;
+  color: var(--text-primary);
 }
 
-/* Célula de Data com ícone */
-.dateCell {
+/* Versão MOBILE (Cards) */
+.mobileOnly {
+  display: none; /* Escondido no Desktop */
+}
+
+.historyCard {
+  background-color: white;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.historyCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.historyDate {
+  font-weight: 700;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.historyMainStat {
+  font-size: 0.9rem;
   font-weight: 600;
+  color: var(--primary);
+  background-color: #eff6ff;
+  padding: 4px 8px;
+  border-radius: 6px;
 }
 
-/* Destaques na tabela */
-.highlight {
-  font-weight: 600;
+.historyGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  font-size: 0.85rem;
 }
 
-.alert {
-  color: #ef4444;
-  font-weight: 600;
-}
-
-.separator {
-  color: #cbd5e1;
-  margin: 0 4px;
-}
-
-/* Botão de Excluir */
-.deleteBtn {
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  color: #cbd5e1;
+.statItem {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s;
+  flex-direction: column;
 }
 
-.deleteBtn:hover {
-  color: #ef4444;
+.statLabel {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
 }
 
-/* --- RESPONSIVIDADE --- */
-@media (max-width: 640px) {
+.statValue {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.deleteBtnAbs {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: #cbd5e1;
+  background: none;
+  border: none;
+}
+
+/* --- GRÁFICO RESPONSIVO --- */
+.chartWrapper {
+  width: 100%;
+  height: 250px; /* Altura fixa para o container */
+  margin-top: 1rem;
+}
+
+/* --- MEDIA QUERIES --- */
+@media (max-width: 768px) {
   .header {
-    margin-bottom: 1.5rem;
-  }
-
-  .title {
-    font-size: 1.5rem;
-  }
-
-  /* No mobile, o header do form empilha (Título em cima, Data em baixo) */
-  .formHeader {
     flex-direction: column;
     align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .dateInputWrapper {
+    width: 100%; /* Data full width no mobile */
   }
 
-  .dateWrapper {
-    width: 100%; /* Data ocupa largura total */
+  .cardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
   }
 
-  /* Inputs de medidas ocupam metade da tela cada (2 por linha) em vez de auto-fit que pode deixar 1 só */
-  .measurementsGrid {
+  /* No mobile, inputs ficam empilhados ou em 2 colunas no máximo */
+  .rowGrid {
     grid-template-columns: 1fr 1fr; 
+  }
+
+  .measurementsGrid {
+    grid-template-columns: 1fr 1fr; /* 2 por linha no mobile */
+  }
+
+  /* Troca Tabela por Cards */
+  .desktopOnly { display: none; }
+  .mobileOnly { display: block; }
+
+  .chartWrapper {
+    height: 200px; /* Gráfico menor no mobile */
+    font-size: 0.8rem;
   }
 }
