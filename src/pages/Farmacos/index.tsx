@@ -21,7 +21,7 @@ interface Pharmac {
 
 export function Farmacos() {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   
   // Lista
   const [items, setItems] = useState<Pharmac[]>([]);

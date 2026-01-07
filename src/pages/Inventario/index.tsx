@@ -9,7 +9,7 @@ import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { 
-  Plus, Package, Search, MapPin, Tag, Trash2, Camera, Image as ImageIcon, Loader2, X
+  Plus, Package, MapPin, Tag, Trash2, Camera, Loader2, X
 } from 'lucide-react';
 
 interface InventoryItem {
@@ -25,7 +25,7 @@ export function Inventario() {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   
   // Form States
   const [name, setName] = useState('');
