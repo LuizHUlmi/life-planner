@@ -1,0 +1,116 @@
+/* Container principal: Centraliza tudo na tela */
+.container {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8fafc; /* Cor de fundo suave */
+  padding: 1rem;
+}
+
+/* O cartão branco do login */
+.card {
+  width: 100%;
+  max-width: 400px;
+  background-color: white;
+  border-radius: var(--radius-md, 12px); /* Usa variável ou valor padrão */
+  padding: 2.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Cabeçalho: Logo e Títulos */
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Ícone/Logo */
+.logo {
+  color: var(--primary);
+  margin-bottom: 1rem;
+  /* Se quiseres aquele fundo quadrado colorido de antes: */
+  /* background-color: var(--primary);
+  color: white;
+  padding: 10px;
+  border-radius: 12px;
+  width: 50px;
+  height: 50px; 
+  */
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.header p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Formulário */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem; /* Espaço entre os inputs */
+}
+
+/* Mensagem de Erro */
+.error {
+  color: #ef4444; /* Vermelho */
+  background-color: #fef2f2;
+  border: 1px solid #fee2e2;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+/* Botão de Entrar */
+.submitButton {
+  margin-top: 0.5rem;
+  width: 100%;
+  justify-content: center; /* Centraliza o texto/loader no botão */
+}
+
+/* Rodapé (Link para criar conta) */
+.footer {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.footer a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+  filter: brightness(1.1);
+}
+
+/* Responsividade para telemóveis muito pequenos */
+@media (max-width: 480px) {
+  .card {
+    padding: 1.5rem;
+    box-shadow: none; /* Remove sombra para parecer mais "app nativa" */
+    background-color: transparent; /* Ou manter branco, conforme gosto */
+  }
+  
+  .container {
+    background-color: white; /* Fundo branco total no mobile */
+    align-items: flex-start; /* Joga para o topo */
+    padding-top: 4rem;
+  }
+}

@@ -1,92 +1,90 @@
-import { useState } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useNavigate } from 'react-router-dom';
-import { Card } from '../../components/ui/Card';
-import { Input } from '../../components/ui/Input';
-import { Button } from '../../components/ui/Button';
-import { Loader2, LogIn } from 'lucide-react';
+/* src/pages/Login/index.tsx */
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { Input } from "../../components/ui/Input";
+import { Button } from "../../components/ui/Button";
+import { Flower2, Loader2 } from "lucide-react";
+// Assumindo que você pode ter um arquivo CSS ou usando classes utilitárias
+import styles from "./Login.module.css"; 
 
 export function Login() {
   const navigate = useNavigate();
+  const { signIn } = useAuth(); // Se estiver usando Contexto
+  
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [error, setError] = useState("");
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  async function handleLogin(e?: React.FormEvent) {
+    // Previne o recarregamento da página se vier do formulário
+    if (e) e.preventDefault();
+    
     setLoading(true);
+    setError("");
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        alert('Credenciais inválidas. Verifique e tente novamente.');
-      } else {
-        navigate('/dashboard');
-      }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      alert('Ocorreu um erro inesperado.');
+      // Simulação ou chamada real do Supabase
+      await signIn(email, password); 
+      navigate("/dashboard");
+    } catch (err) {
+      setError("Falha ao entrar. Verifique seus dados.");
+      console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
-    <div style={{ 
-      height: '100vh', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      backgroundColor: '#f8fafc' 
-    }}>
-      <Card style={{ width: '100%', maxWidth: '380px', padding: '2.5rem' }}>
+    <div className={styles.container}>
+      <div className={styles.card}>
         
-        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <div style={{ 
-            width: '50px', height: '50px', backgroundColor: 'var(--primary)', 
-            borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 1rem auto', color: 'white'
-          }}>
-            <LogIn size={24} />
-          </div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-            Bem-vindo de volta
-          </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-            Acesse seu Life Planner
-          </p>
+        <div className={styles.header}>
+          <Flower2 size={48} className={styles.logo} />
+          <h1>Bem-vindo de volta</h1>
+          <p>Acesse seu Life Planner</p>
         </div>
 
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+        {/* O segredo está aqui: A tag FORM */}
+        <form onSubmit={handleLogin} className={styles.form}>
           
-          <Input 
-            type="email" 
-            placeholder="E-mail" 
-
+          <Input
+            label="E-mail"
+            type="email"
+            // Atributos cruciais para o Autofill:
+            name="email"
+            autoComplete="email" 
+            placeholder="seu@email.com"
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
 
-          <Input 
-            type="password" 
-            placeholder="Senha" 
-
+          <Input
+            label="Senha"
+            type="password"
+            // Atributos cruciais para o Autofill:
+            name="password"
+            autoComplete="current-password"
+            placeholder="Sua senha secreta"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
 
-          <Button type="submit" fullWidth disabled={loading} style={{ marginTop: '0.5rem' }}>
-            {loading ? <Loader2 className="animate-spin" /> : 'Entrar no Sistema'}
+          {error && <span className={styles.error}>{error}</span>}
+
+          <Button type="submit" disabled={loading} className={styles.submitButton}>
+            {loading ? <Loader2 className="animate-spin" /> : "Entrar"}
           </Button>
-          
         </form>
-      </Card>
+
+        <div className={styles.footer}>
+          <span>Não tem uma conta? </span>
+          <Link to="/register">Crie agora</Link>
+        </div>
+      </div>
     </div>
   );
 }
