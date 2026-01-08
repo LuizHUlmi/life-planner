@@ -1,5 +1,3 @@
-/* src/pages/Diario/Diario.module.css */
-
 .container {
   max-width: 600px;
   margin: 0 auto;
@@ -54,10 +52,12 @@
   font-weight: 600;
 }
 
-/* --- SEÇÕES GERAIS --- */
-.sectionContainer {
-  /* Scroll Margin é o segredo: garante que ao rolar, o título não fique colado no topo ou escondido */
-  scroll-margin-top: 20px; 
+/* --- GRID DE SEPARAÇÃO FÍSICA --- */
+.formGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* O espaço físico entre os cartões */
+  padding-bottom: 6rem;
 }
 
 .sectionTitle {
@@ -71,262 +71,58 @@
 }
 
 .inputGroup {
-  margin-bottom: 2rem;
-}
-
-/* --- SELETOR RÁPIDO --- */
-.qsContainer {
   margin-bottom: 1.5rem;
 }
 
-.qsLabel {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  margin-bottom: 0.8rem;
-  color: var(--text-primary);
-  font-size: 0.95rem;
-}
+/* --- SELETOR RÁPIDO --- */
+.qsContainer { margin-bottom: 1.5rem; }
+.qsLabel { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; margin-bottom: 0.8rem; color: var(--text-primary); font-size: 0.95rem; }
+.qsOptions { display: flex; gap: 0.5rem; }
+.qsButton { flex: 1; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--border-color); background-color: white; color: var(--text-secondary); font-weight: 500; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; touch-action: manipulation; }
+.qsButtonSelected { font-weight: 700; border-width: 2px; }
 
-.qsOptions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.qsButton {
-  flex: 1;
-  padding: 0.8rem;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  background-color: white;
-  color: var(--text-secondary);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.9rem;
-  touch-action: manipulation;
-}
-
-.qsButtonSelected {
-  font-weight: 700;
-  border-width: 2px;
-}
-
-/* --- FINANCEIRO (NOVO) --- */
-.financeSection {
-  border-top: 1px solid var(--border-color);
-  padding-top: 1.5rem;
-  margin-top: 1.5rem;
-}
-
+/* --- FINANCEIRO --- */
 .financeCard {
-  background-color: #fff7ed; /* Laranja bem clarinho */
+  background-color: #fff7ed;
   border: 1px solid #ffedd5;
   border-radius: 12px;
   padding: 1rem;
 }
-
-.financeInputs {
-  display: grid;
-  gap: 0.8rem;
-  margin-bottom: 0.8rem;
-}
-
-.financeRow {
-  display: grid;
-  grid-template-columns: 2fr 1fr; /* Descrição maior que valor */
-  gap: 0.8rem;
-}
-
-.financeBtn {
-  width: 100%;
-  background-color: #f97316; /* Laranja */
-  color: white;
-  border: none;
-  padding: 0.8rem;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.financeBtn:disabled {
-  opacity: 0.7;
-}
+.financeInputs { display: grid; gap: 0.8rem; margin-bottom: 0.8rem; }
+.financeRow { display: grid; grid-template-columns: 2fr 1fr; gap: 0.8rem; }
+.financeBtn { width: 100%; background-color: #f97316; color: white; border: none; padding: 0.8rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.financeBtn:disabled { opacity: 0.7; }
 
 /* --- NUTRIÇÃO --- */
-.nutritionSection {
-  border-top: 1px solid var(--border-color);
-  padding-top: 1.5rem;
-  margin-top: 1.5rem;
-}
-
-.dietPlanBox {
-  background-color: #f0fdf4;
-  padding: 1rem;
-  border-radius: 12px;
-  border: 1px solid #bbf7d0;
-  margin-top: 1rem;
-}
-
-.dietLabel {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #166534;
-  margin-bottom: 0.5rem;
-  display: block;
-}
-
-.dietSelect {
-  width: 100%;
-  padding: 0.6rem;
-  border-radius: 6px;
-  border: 1px solid #86efac;
-  background-color: white;
-  color: #14532d;
-  font-size: 0.95rem;
-}
-
-.macroGrid {
-  margin-top: 1rem;
-  display: flex;
-  justify-content: space-around;
-  border-top: 1px dashed #86efac;
-  padding-top: 1rem;
-}
-
+.dietPlanBox { background-color: #f0fdf4; padding: 1rem; border-radius: 12px; border: 1px solid #bbf7d0; margin-top: 1rem; }
+.dietLabel { font-size: 0.85rem; font-weight: 600; color: #166534; margin-bottom: 0.5rem; display: block; }
+.dietSelect { width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid #86efac; background-color: white; color: #14532d; font-size: 0.95rem; }
+.macroGrid { margin-top: 1rem; display: flex; justify-content: space-around; border-top: 1px dashed #86efac; padding-top: 1rem; }
 .macroItem { text-align: center; }
 .macroLabel { font-size: 0.75rem; color: #15803d; }
 .macroValue { font-weight: 700; color: #166534; display: flex; align-items: center; gap: 4px; }
 
 /* --- TREINO --- */
-.workoutSection {
-  border-top: 1px solid var(--border-color);
-  padding-top: 1.5rem;
-  margin-top: 1.5rem;
-}
-
-.workoutCard {
-  background-color: #f8fafc;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--border-color);
-  margin-top: 1rem;
-}
-
-.workoutHeader {
-  padding: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  background-color: #f1f5f9;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
+.workoutCard { background-color: #f8fafc; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); margin-top: 1rem; }
+.workoutHeader { padding: 1rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background-color: #f1f5f9; font-weight: 600; color: var(--text-primary); }
 .workoutBody { padding: 1rem; }
-
-.exerciseCard {
-  background-color: white;
-  padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  margin-bottom: 1rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.exerciseHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.8rem;
-}
-
-.exerciseNameInput {
-  font-size: 1rem;
-  font-weight: 700;
-  border: none;
-  border-bottom: 1px solid #e2e8f0;
-  width: 85%;
-  outline: none;
-  padding-bottom: 4px;
-  color: var(--text-primary);
-}
-
-.deleteBtn {
-  border: none;
-  background: transparent;
-  color: #ef4444;
-  cursor: pointer;
-  padding: 4px;
-}
-
-/* Set Grid */
-.setGridHeader {
-  display: grid;
-  grid-template-columns: 32px 1fr 1fr;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  font-weight: 700;
-  text-align: center;
-}
-
-.setRow {
-  display: grid;
-  grid-template-columns: 32px 1fr 1fr;
-  gap: 0.5rem;
-  align-items: center;
-  margin-bottom: 0.6rem;
-  position: relative;
-}
-
-.setIndex {
-  text-align: center;
-  font-weight: 600;
-  color: var(--primary);
-  background-color: #eff6ff;
-  border-radius: 4px;
-  padding: 4px 0;
-  font-size: 0.85rem;
-}
-
-.setInput {
-  width: 100%;
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-  text-align: center;
-  font-size: 0.95rem;
-}
-
-.historyBadge {
-  position: absolute;
-  top: -16px;
-  right: 0;
-  font-size: 0.65rem;
-  color: #3b82f6;
-  font-weight: 600;
-  background-color: #eff6ff;
-  padding: 1px 6px;
-  border-radius: 4px;
-}
+.exerciseCard { background-color: white; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.exerciseHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+.exerciseNameInput { font-size: 1rem; font-weight: 700; border: none; border-bottom: 1px solid #e2e8f0; width: 85%; outline: none; padding-bottom: 4px; color: var(--text-primary); }
+.deleteBtn { border: none; background: transparent; color: #ef4444; cursor: pointer; padding: 4px; }
+.setGridHeader { display: grid; grid-template-columns: 32px 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; text-align: center; }
+.setRow { display: grid; grid-template-columns: 32px 1fr 1fr; gap: 0.5rem; align-items: center; margin-bottom: 0.6rem; position: relative; }
+.setIndex { text-align: center; font-weight: 600; color: var(--primary); background-color: #eff6ff; border-radius: 4px; padding: 4px 0; font-size: 0.85rem; }
+.setInput { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0; text-align: center; font-size: 0.95rem; }
+.historyBadge { position: absolute; top: -16px; right: 0; font-size: 0.65rem; color: #3b82f6; font-weight: 600; background-color: #eff6ff; padding: 1px 6px; border-radius: 4px; }
 
 /* --- FOOTER --- */
 .footerActions {
   display: flex;
-  justify-content: flex-end;
-  margin-top: 2rem;
-  margin-bottom: 6rem; /* Aumentei a margem para a barra não cobrir */
+  justify-content: center;
+  margin-top: 1rem;
 }
 
-/* Mobile Ajustes */
 @media (max-width: 600px) {
   .title { font-size: 1.5rem; }
   .dateWrapper { width: 140px; }
