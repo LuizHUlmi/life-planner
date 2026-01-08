@@ -1,9 +1,9 @@
 /* src/pages/Diario/Diario.module.css */
 
 .container {
-  max-width: 600px; /* Foco total em mobile/tablet vertical */
+  max-width: 600px;
   margin: 0 auto;
-  padding: 0 0.5rem; /* Pequeno padding lateral */
+  padding: 0 0.5rem;
   width: 100%;
 }
 
@@ -25,7 +25,7 @@
   width: 160px;
 }
 
-/* --- ABAS (Registrar vs Histórico) --- */
+/* --- ABAS --- */
 .tabContainer {
   display: flex;
   gap: 1rem;
@@ -54,7 +54,12 @@
   font-weight: 600;
 }
 
-/* --- SEÇÕES DO FORMULÁRIO --- */
+/* --- SEÇÕES GERAIS --- */
+.sectionContainer {
+  /* Scroll Margin é o segredo: garante que ao rolar, o título não fique colado no topo ou escondido */
+  scroll-margin-top: 20px; 
+}
+
 .sectionTitle {
   font-size: 1.1rem;
   margin-bottom: 1.2rem;
@@ -69,7 +74,7 @@
   margin-bottom: 2rem;
 }
 
-/* --- SELETOR RÁPIDO (QuickSelector) --- */
+/* --- SELETOR RÁPIDO --- */
 .qsContainer {
   margin-bottom: 1.5rem;
 }
@@ -100,18 +105,60 @@
   cursor: pointer;
   transition: all 0.2s;
   font-size: 0.9rem;
-  /* Previne zoom no mobile ao tocar */
   touch-action: manipulation;
 }
 
-/* Estados do Botão (Gerados dinamicamente via style inline para cores, 
-   mas a base fica aqui) */
 .qsButtonSelected {
   font-weight: 700;
   border-width: 2px;
 }
 
-/* --- SEÇÃO NUTRIÇÃO --- */
+/* --- FINANCEIRO (NOVO) --- */
+.financeSection {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.financeCard {
+  background-color: #fff7ed; /* Laranja bem clarinho */
+  border: 1px solid #ffedd5;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.financeInputs {
+  display: grid;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.financeRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* Descrição maior que valor */
+  gap: 0.8rem;
+}
+
+.financeBtn {
+  width: 100%;
+  background-color: #f97316; /* Laranja */
+  color: white;
+  border: none;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.financeBtn:disabled {
+  opacity: 0.7;
+}
+
+/* --- NUTRIÇÃO --- */
 .nutritionSection {
   border-top: 1px solid var(--border-color);
   padding-top: 1.5rem;
@@ -123,7 +170,6 @@
   padding: 1rem;
   border-radius: 12px;
   border: 1px solid #bbf7d0;
-  animation: fadeIn 0.3s ease;
   margin-top: 1rem;
 }
 
@@ -153,24 +199,11 @@
   padding-top: 1rem;
 }
 
-.macroItem {
-  text-align: center;
-}
+.macroItem { text-align: center; }
+.macroLabel { font-size: 0.75rem; color: #15803d; }
+.macroValue { font-weight: 700; color: #166534; display: flex; align-items: center; gap: 4px; }
 
-.macroLabel {
-  font-size: 0.75rem;
-  color: #15803d;
-}
-
-.macroValue {
-  font-weight: 700;
-  color: #166534;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* --- SEÇÃO TREINO --- */
+/* --- TREINO --- */
 .workoutSection {
   border-top: 1px solid var(--border-color);
   padding-top: 1.5rem;
@@ -196,9 +229,7 @@
   color: var(--text-primary);
 }
 
-.workoutBody {
-  padding: 1rem;
-}
+.workoutBody { padding: 1rem; }
 
 .exerciseCard {
   background-color: white;
@@ -235,7 +266,7 @@
   padding: 4px;
 }
 
-/* Tabela de Sets */
+/* Set Grid */
 .setGridHeader {
   display: grid;
   grid-template-columns: 32px 1fr 1fr;
@@ -272,7 +303,7 @@
   border-radius: 6px;
   border: 1px solid #e2e8f0;
   text-align: center;
-  font-size: 0.95rem; /* Fonte maior para evitar zoom no iPhone */
+  font-size: 0.95rem;
 }
 
 .historyBadge {
@@ -287,17 +318,12 @@
   border-radius: 4px;
 }
 
-/* --- FOOTER (Botão Salvar) --- */
+/* --- FOOTER --- */
 .footerActions {
   display: flex;
   justify-content: flex-end;
   margin-top: 2rem;
-  margin-bottom: 4rem; /* Espaço extra para não ficar atrás da navbar mobile */
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
+  margin-bottom: 6rem; /* Aumentei a margem para a barra não cobrir */
 }
 
 /* Mobile Ajustes */

@@ -1,5 +1,5 @@
-import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Dumbbell, PenLine, Utensils, Menu } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Wallet, Dumbbell, PenLine, Utensils, Menu } from "lucide-react";
 import styles from "./MobileNavbar.module.css";
 
 interface MobileNavbarProps {
@@ -7,48 +7,65 @@ interface MobileNavbarProps {
 }
 
 export function MobileNavbar({ onOpenMenu }: MobileNavbarProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Função inteligente de navegação com scroll
+  const handleScrollTo = (hash: string) => {
+    // Se já estiver no diário, apenas rola
+    if (location.pathname === '/diario') {
+      const element = document.getElementById(hash);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else {
+      // Se estiver noutra página, navega para o diário com o hash
+      navigate(`/diario#${hash}`);
+    }
+  };
+
   return (
     <nav className={styles.navbar}>
       <div className={styles.navContainer}>
         
-        {/* 1. Home */}
-        <NavLink 
-          to="/dashboard" 
-          className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}
+        {/* 1. Financeiro (Novo Foco em Input) */}
+        <button 
+          onClick={() => handleScrollTo('financeiro')} 
+          className={styles.navItem}
         >
-          <LayoutDashboard size={24} />
-          <span>Início</span>
-        </NavLink>
+          <Wallet size={24} />
+          <span>Gastos</span>
+        </button>
 
-        {/* 2. Treino */}
-        <NavLink 
-          to="/treino" 
-          className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}
+        {/* 2. Treino (Âncora) */}
+        <button 
+          onClick={() => handleScrollTo('treino')} 
+          className={styles.navItem}
         >
           <Dumbbell size={24} />
           <span>Treino</span>
-        </NavLink>
+        </button>
 
-        {/* 3. Diário (Botão Central) */}
-        <NavLink 
-          to="/diario" 
+        {/* 3. Diário (Topo - Métricas) */}
+        <button 
+          onClick={() => handleScrollTo('metrics')} // Topo da página
           className={styles.navItem}
         >
           <div className={styles.navItemHighlight}>
             <PenLine size={24} />
           </div>
-        </NavLink>
+        </button>
 
-        {/* 4. Nutrição */}
-        <NavLink 
-          to="/nutricao" 
-          className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}
+        {/* 4. Nutrição (Âncora) */}
+        <button 
+          onClick={() => handleScrollTo('nutricao')} 
+          className={styles.navItem}
         >
           <Utensils size={24} />
           <span>Dieta</span>
-        </NavLink>
+        </button>
 
-        {/* 5. Menu (Abre a Sidebar Lateral) */}
+        {/* 5. Menu (Abre Dashboard, Configs, etc) */}
         <button onClick={onOpenMenu} className={styles.navItem}>
           <Menu size={24} />
           <span>Menu</span>
