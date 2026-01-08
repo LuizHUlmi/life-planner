@@ -20,24 +20,23 @@ export function MobileNavbar({ onOpenMenu }: MobileNavbarProps) {
           <span>Início</span>
         </NavLink>
 
-        {/* 2. Treino (Piloto) */}
+        {/* 2. Treino */}
         <NavLink 
-          to="/treino" // Ou direto para execução se preferir
+          to="/treino" 
           className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}
         >
           <Dumbbell size={24} />
           <span>Treino</span>
         </NavLink>
 
-        {/* 3. Diário (DESTAQUE CENTRAL) */}
+        {/* 3. Diário (Botão Central) */}
         <NavLink 
           to="/diario" 
-          className={({ }) => `${styles.navItem}`} // Removemos active padrão p/ controlar estilo
+          className={styles.navItem}
         >
           <div className={styles.navItemHighlight}>
             <PenLine size={24} />
           </div>
-          {/* Sem texto para manter limpo, ou opcional */}
         </NavLink>
 
         {/* 4. Nutrição */}
@@ -49,8 +48,8 @@ export function MobileNavbar({ onOpenMenu }: MobileNavbarProps) {
           <span>Dieta</span>
         </NavLink>
 
-        {/* 5. Menu (Abre a Sidebar antiga como Drawer) */}
-        <button onClick={onOpenMenu} className={styles.navItem} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+        {/* 5. Menu (Abre a Sidebar Lateral) */}
+        <button onClick={onOpenMenu} className={styles.navItem}>
           <Menu size={24} />
           <span>Menu</span>
         </button>
