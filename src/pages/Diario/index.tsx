@@ -3,37 +3,38 @@ import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 
-// UI
+// Estilos
+import styles from './Diario.module.css';
+
+// Componentes UI
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
+import { DiaryHistory } from './components/DiaryHistory';
+import { HabitTracker } from './components/HabitTracker';
+
+// Ícones
 import { 
   Save, Loader2, PenLine, History, 
   Moon, Heart, Utensils, Dumbbell, ChevronDown, ChevronUp, Plus, Trash2, Flame
 } from 'lucide-react';
 
-import { DiaryHistory } from './components/DiaryHistory';
-import { HabitTracker } from './components/HabitTracker';
-
 // --- TIPOS ---
-// Tipos de Treino
 interface SetData { reps: string; load: string; targetReps?: string; targetLoad?: string; }
 interface ExerciseSession { id: string; name: string; notes: string; sets: SetData[]; }
 interface SavedWorkout { id: number; name: string; exercises: any[]; }
-
-// Tipos de Nutrição
 interface Food { kcal: number; protein: number; carbs: number; fat: number; }
 interface Meal { foods: Food[]; }
 interface DietPlan { id: number; name: string; meals: Meal[]; }
 
-// Helper: Select Rápido
+// Componente Helper: Select Rápido (Refatorado com CSS Modules)
 function QuickSelector({ label, icon, options, value, onChange }: any) {
   return (
-    <div style={{ marginBottom: '1.5rem' }}>
-      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, marginBottom: '0.8rem', color: 'var(--text-primary)' }}>
+    <div className={styles.qsContainer}>
+      <label className={styles.qsLabel}>
         {icon} {label}
       </label>
-      <div style={{ display: 'flex', gap: '0.5rem' }}>
+      <div className={styles.qsOptions}>
         {options.map((opt: any) => {
           const isSelected = value === opt.value;
           return (
@@ -41,13 +42,12 @@ function QuickSelector({ label, icon, options, value, onChange }: any) {
               key={opt.value}
               type="button"
               onClick={() => onChange(opt.value)}
-              style={{
-                flex: 1, padding: '0.8rem', borderRadius: '8px',
-                border: isSelected ? `2px solid ${opt.color || 'var(--primary)'}` : '1px solid var(--border-color)',
-                backgroundColor: isSelected ? (opt.color ? `${opt.color}20` : '#e0e7ff') : 'white',
-                color: isSelected ? (opt.color || 'var(--primary)') : 'var(--text-secondary)',
-                fontWeight: isSelected ? 700 : 400, cursor: 'pointer', transition: 'all 0.2s', fontSize: '0.9rem'
-              }}
+              className={`${styles.qsButton} ${isSelected ? styles.qsButtonSelected : ''}`}
+              style={isSelected ? { 
+                borderColor: opt.color, 
+                backgroundColor: `${opt.color}15`, 
+                color: opt.color 
+              } : {}}
             >
               {opt.label}
             </button>
@@ -70,7 +70,7 @@ export function Diario() {
   const [weight, setWeight] = useState('');
   const [sleep, setSleep] = useState('');
   const [libido, setLibido] = useState('');
-  const [dietScore, setDietScore] = useState(''); // 'off', 'mais_50', '100'
+  const [dietScore, setDietScore] = useState(''); 
   const [workoutType, setWorkoutType] = useState('');
 
   // Estados Nutrição
@@ -87,7 +87,7 @@ export function Diario() {
     if (user && selectedDate && viewMode === 'form') {
       fetchDailyLog();
       fetchSavedWorkouts();
-      fetchSavedDiets(); // Buscar dietas cadastradas
+      fetchSavedDiets();
       fetchExerciseHistory();
     }
   }, [selectedDate, user, viewMode]);
@@ -159,7 +159,7 @@ export function Diario() {
     setWorkoutDetails([]); setSelectedDietId('');
   }
 
-  // --- LÓGICA DE TREINO ---
+  // Lógica Treino
   const importWorkout = (workoutId: string) => {
     const ficha = savedWorkouts.find(w => w.id === Number(workoutId));
     if (ficha && ficha.exercises) {
@@ -197,7 +197,7 @@ export function Diario() {
     return null;
   };
 
-  // --- LÓGICA DE NUTRIÇÃO (Cálculo de Macros) ---
+  // Lógica Nutrição
   const getDietSummary = () => {
     if (!selectedDietId) return null;
     const plan = savedDiets.find(d => d.id === Number(selectedDietId));
@@ -217,7 +217,6 @@ export function Diario() {
 
   const dietSummary = getDietSummary();
 
-  // Salvar
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -227,11 +226,8 @@ export function Diario() {
         date: selectedDate,
         weight: weight ? Number(weight) : null,
         sleep_score: sleep, libido_score: libido, 
-        
-        // Nutrição Atualizada
         diet_score: dietScore, 
         diet_plan_id: (dietScore === 'off') ? null : (selectedDietId ? Number(selectedDietId) : null),
-
         workout_type: workoutType,
         workout_details: workoutType === 'nao_treinei' ? [] : workoutDetails
       };
@@ -243,32 +239,49 @@ export function Diario() {
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-      <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div><h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>Check-in Diário</h1></div>
-        {viewMode === 'form' && <div style={{ width: '180px' }}><Input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)}  /></div>}
+    <div className={styles.container}>
+      <header className={styles.header}>
+        <h1 className={styles.title}>Check-in</h1>
+        {viewMode === 'form' && (
+          <div className={styles.dateWrapper}>
+            <Input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
+          </div>
+        )}
       </header>
 
-      <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem' }}>
-        <button onClick={() => setViewMode('form')} style={viewMode === 'form' ? activeTabStyle : tabStyle}><PenLine size={18} /> Registar</button>
-        <button onClick={() => setViewMode('history')} style={viewMode === 'history' ? activeTabStyle : tabStyle}><History size={18} /> Histórico</button>
+      <div className={styles.tabContainer}>
+        <button onClick={() => setViewMode('form')} className={`${styles.tab} ${viewMode === 'form' ? styles.activeTab : ''}`}>
+          <PenLine size={18} /> Registrar
+        </button>
+        <button onClick={() => setViewMode('history')} className={`${styles.tab} ${viewMode === 'history' ? styles.activeTab : ''}`}>
+          <History size={18} /> Histórico
+        </button>
       </div>
 
       {viewMode === 'history' ? <DiaryHistory /> : (
         loading ? <div style={{ textAlign: 'center', padding: '4rem' }}><Loader2 className="animate-spin" size={40} /></div> : (
-          <div style={{ display: 'grid', gap: '2rem' }}>
-            <HabitTracker date={selectedDate} />
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            <HabitTracker date={''} />
+            
             <form onSubmit={handleSave}>
               <Card>
-                <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: 'var(--primary)', fontWeight: 600 }}>Métricas</h2>
+                <div className={styles.sectionTitle}>Métricas Básicas</div>
                 
-                <div style={{ marginBottom: '2rem' }}><Input label="Peso (kg)" type="number" step="0.05" value={weight} onChange={e => setWeight(e.target.value)}  /></div>
+                <div className={styles.inputGroup}>
+                   <Input label="Peso (kg)" type="number" step="0.05" value={weight} onChange={e => setWeight(e.target.value)} />
+                </div>
                 
-                <QuickSelector label="Sono" icon={<Moon size={18} />} value={sleep} onChange={setSleep} options={[{ value: 'pessimo', label: 'Péssimo', color: '#ef4444' }, { value: 'ok', label: 'OK', color: '#f59e0b' }, { value: 'otimo', label: 'Ótimo', color: '#10b981' }]} />
-                <QuickSelector label="Libido" icon={<Heart size={18} />} value={libido} onChange={setLibido} options={[{ value: 'pessimo', label: 'Péssimo', color: '#ef4444' }, { value: 'ok', label: 'OK', color: '#f59e0b' }, { value: 'otimo', label: 'Ótima', color: '#10b981' }]} />
+                <QuickSelector 
+                  label="Sono" icon={<Moon size={18} />} value={sleep} onChange={setSleep} 
+                  options={[{ value: 'pessimo', label: 'Péssimo', color: '#ef4444' }, { value: 'ok', label: 'OK', color: '#f59e0b' }, { value: 'otimo', label: 'Ótimo', color: '#10b981' }]} 
+                />
+                <QuickSelector 
+                  label="Libido" icon={<Heart size={18} />} value={libido} onChange={setLibido} 
+                  options={[{ value: 'pessimo', label: 'Péssima', color: '#ef4444' }, { value: 'ok', label: 'OK', color: '#f59e0b' }, { value: 'otimo', label: 'Alta', color: '#10b981' }]} 
+                />
 
-                {/* --- SEÇÃO DE NUTRIÇÃO --- */}
-                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
+                {/* --- NUTRIÇÃO --- */}
+                <div className={styles.nutritionSection}>
                     <QuickSelector 
                         label="Dieta" icon={<Utensils size={18} />} value={dietScore} onChange={setDietScore} 
                         options={[
@@ -278,43 +291,34 @@ export function Diario() {
                         ]} 
                     />
                     
-                    {/* Seletor de Plano Alimentar (Só aparece se não for Off) */}
                     {dietScore !== 'off' && dietScore !== '' && (
-                        <div style={{ backgroundColor: '#f0fdf4', padding: '1rem', borderRadius: '12px', border: '1px solid #bbf7d0', animation: 'fadeIn 0.3s' }}>
-                            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#166534', marginBottom: '0.5rem', display: 'block' }}>
-                                Qual plano você seguiu?
-                            </label>
+                        <div className={styles.dietPlanBox}>
+                            <label className={styles.dietLabel}>Qual plano você seguiu?</label>
                             <select 
-                                value={selectedDietId}
-                                onChange={(e) => setSelectedDietId(e.target.value)}
-                                style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #86efac', backgroundColor: 'white', color: '#14532d' }}
+                                value={selectedDietId} onChange={(e) => setSelectedDietId(e.target.value)}
+                                className={styles.dietSelect}
                             >
                                 <option value="" disabled>Selecione a dieta...</option>
-                                {savedDiets.map(d => (
-                                    <option key={d.id} value={d.id}>{d.name}</option>
-                                ))}
+                                {savedDiets.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                             </select>
 
-                            {/* Resumo Visual dos Macros */}
                             {dietSummary && (
-                                <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', justifyContent: 'space-around', borderTop: '1px dashed #86efac', paddingTop: '1rem' }}>
-                                    <div style={{ textAlign: 'center' }}>
-                                        <div style={{ fontSize: '0.75rem', color: '#15803d' }}>Calorias</div>
-                                        <div style={{ fontWeight: 700, color: '#166534', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                            <Flame size={12} fill="#166534" /> {Math.round(dietSummary.kcal)}
-                                        </div>
+                                <div className={styles.macroGrid}>
+                                    <div className={styles.macroItem}>
+                                        <div className={styles.macroLabel}>Calorias</div>
+                                        <div className={styles.macroValue}><Flame size={12} /> {Math.round(dietSummary.kcal)}</div>
                                     </div>
-                                    <div style={{ textAlign: 'center' }}>
-                                        <div style={{ fontSize: '0.75rem', color: '#15803d' }}>Prot</div>
-                                        <div style={{ fontWeight: 700, color: '#166534' }}>{Math.round(dietSummary.p)}g</div>
+                                    <div className={styles.macroItem}>
+                                        <div className={styles.macroLabel}>Prot</div>
+                                        <div className={styles.macroValue}>{Math.round(dietSummary.p)}g</div>
                                     </div>
-                                    <div style={{ textAlign: 'center' }}>
-                                        <div style={{ fontSize: '0.75rem', color: '#15803d' }}>Carb</div>
-                                        <div style={{ fontWeight: 700, color: '#166534' }}>{Math.round(dietSummary.c)}g</div>
+                                    <div className={styles.macroItem}>
+                                        <div className={styles.macroLabel}>Carb</div>
+                                        <div className={styles.macroValue}>{Math.round(dietSummary.c)}g</div>
                                     </div>
-                                    <div style={{ textAlign: 'center' }}>
-                                        <div style={{ fontSize: '0.75rem', color: '#15803d' }}>Gord</div>
-                                        <div style={{ fontWeight: 700, color: '#166534' }}>{Math.round(dietSummary.f)}g</div>
+                                    <div className={styles.macroItem}>
+                                        <div className={styles.macroLabel}>Gord</div>
+                                        <div className={styles.macroValue}>{Math.round(dietSummary.f)}g</div>
                                     </div>
                                 </div>
                             )}
@@ -322,22 +326,22 @@ export function Diario() {
                     )}
                 </div>
 
-                {/* --- SEÇÃO DE TREINO --- */}
-                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
+                {/* --- TREINO --- */}
+                <div className={styles.workoutSection}>
                   <QuickSelector 
                     label="Treino" icon={<Dumbbell size={18} />} value={workoutType} onChange={(v: string) => { setWorkoutType(v); setIsWorkoutExpanded(true); }}
-                    options={[{ value: 'nao_treinei', label: 'Off', color: '#94a3b8' }, { value: 'alternativo', label: 'Alternativo', color: '#ec4899' }, { value: 'academia', label: 'Academia', color: '#3b82f6' }]} 
+                    options={[{ value: 'nao_treinei', label: 'Off', color: '#94a3b8' }, { value: 'alternativo', label: 'Outro', color: '#ec4899' }, { value: 'academia', label: 'Gym', color: '#3b82f6' }]} 
                   />
 
                   {(workoutType === 'academia' || workoutType === 'alternativo') && (
-                    <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-                      <div onClick={() => setIsWorkoutExpanded(!isWorkoutExpanded)} style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', cursor: 'pointer', backgroundColor: '#f1f5f9' }}>
-                        <span style={{ fontWeight: 600 }}>Log do Treino ({workoutDetails.length} ex.)</span>
+                    <div className={styles.workoutCard}>
+                      <div className={styles.workoutHeader} onClick={() => setIsWorkoutExpanded(!isWorkoutExpanded)}>
+                        <span>Log do Treino ({workoutDetails.length} ex.)</span>
                         {isWorkoutExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                       </div>
 
                       {isWorkoutExpanded && (
-                        <div style={{ padding: '1rem' }}>
+                        <div className={styles.workoutBody}>
                           <div style={{ marginBottom: '1.5rem' }}>
                              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Importar Ficha</label>
                              <select style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #cbd5e1' }} onChange={(e) => importWorkout(e.target.value)} defaultValue="">
@@ -346,36 +350,44 @@ export function Diario() {
                              </select>
                           </div>
 
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             {workoutDetails.map((ex, exIndex) => (
-                              <div key={ex.id} style={{ backgroundColor: 'white', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.8rem' }}>
+                              <div key={ex.id} className={styles.exerciseCard}>
+                                <div className={styles.exerciseHeader}>
                                   <input 
                                     value={ex.name} onChange={e => updateExerciseName(exIndex, e.target.value)} 
                                     placeholder="Nome do Exercício"
-                                    style={{ fontSize: '1rem', fontWeight: 700, border: 'none', borderBottom: '1px solid #e2e8f0', width: '80%', outline: 'none' }} 
+                                    className={styles.exerciseNameInput}
                                   />
-                                  <button type="button" onClick={() => removeExercise(exIndex)} style={{ border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={18} /></button>
+                                  <button type="button" onClick={() => removeExercise(exIndex)} className={styles.deleteBtn}><Trash2 size={18} /></button>
                                 </div>
                                 
-                                <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 1fr', gap: '0.5rem', marginBottom: '0.4rem', fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, textAlign: 'center' }}>
-                                  <div>Set</div><div>Reps</div><div>Carga (kg)</div>
+                                <div className={styles.setGridHeader}>
+                                  <div>Set</div><div>Reps</div><div>Carga</div>
                                 </div>
 
                                 {Array.isArray(ex.sets) && ex.sets.map((set, setIndex) => {
                                   const historyData = getHistoryForSet(ex.name, setIndex);
                                   return (
-                                    <div key={setIndex} style={{ position: 'relative', marginBottom: '0.8rem' }}>
+                                    <div key={setIndex} className={styles.setRow}>
                                       {historyData && (
-                                        <div style={{ position: 'absolute', top: '-14px', right: '0', fontSize: '0.65rem', color: '#3b82f6', fontWeight: 600, display: 'flex', gap: '8px', paddingRight: '4px' }}>
-                                          <span>Ant: {historyData.reps}x</span><span>{historyData.load}kg</span>
+                                        <div className={styles.historyBadge}>
+                                          {historyData.reps}x {historyData.load}kg
                                         </div>
                                       )}
-                                      <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 1fr', gap: '0.5rem', alignItems: 'center' }}>
-                                        <div style={{ textAlign: 'center', fontWeight: 600, color: 'var(--primary)', backgroundColor: '#eff6ff', borderRadius: '4px', padding: '4px' }}>{setIndex + 1}</div>
-                                        <input value={set.reps} onChange={e => updateSet(exIndex, setIndex, 'reps', e.target.value)} placeholder={set.targetReps ? `Meta: ${set.targetReps}` : 'Reps'} style={inputTableStyle} />
-                                        <input value={set.load} onChange={e => updateSet(exIndex, setIndex, 'load', e.target.value)} placeholder={set.targetLoad ? `Meta: ${set.targetLoad}` : 'kg'} style={inputTableStyle} />
-                                      </div>
+                                      <div className={styles.setIndex}>{setIndex + 1}</div>
+                                      <input 
+                                        type="number"
+                                        value={set.reps} onChange={e => updateSet(exIndex, setIndex, 'reps', e.target.value)} 
+                                        placeholder={set.targetReps || '-'} 
+                                        className={styles.setInput} 
+                                      />
+                                      <input 
+                                        type="number"
+                                        value={set.load} onChange={e => updateSet(exIndex, setIndex, 'load', e.target.value)} 
+                                        placeholder={set.targetLoad || '-'} 
+                                        className={styles.setInput} 
+                                      />
                                     </div>
                                   );
                                 })}
@@ -389,8 +401,8 @@ export function Diario() {
                   )}
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
-                  <Button type="submit" disabled={saving}>{saving ? <Loader2 className="animate-spin" /> : <><Save size={18} /> Salvar</>}</Button>
+                <div className={styles.footerActions}>
+                  <Button type="submit" disabled={saving}>{saving ? <Loader2 className="animate-spin" /> : <><Save size={18} /> Salvar Check-in</>}</Button>
                 </div>
               </Card>
             </form>
@@ -400,7 +412,3 @@ export function Diario() {
     </div>
   );
 }
-
-const activeTabStyle = { display: 'flex', alignItems: 'center', gap: '8px', padding: '0.8rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, color: 'var(--primary)', borderBottom: '2px solid var(--primary)' };
-const tabStyle = { display: 'flex', alignItems: 'center', gap: '8px', padding: '0.8rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 400, color: 'var(--text-secondary)', borderBottom: '2px solid transparent' };
-const inputTableStyle = { width: '100%', padding: '6px', borderRadius: '6px', border: '1px solid #e2e8f0', textAlign: 'center' as const, fontSize: '0.9rem' };
