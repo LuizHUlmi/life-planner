@@ -1,54 +1,59 @@
-/* src/components/layout/DefaultLayout.tsx */
 import { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
+import { MobileNavbar } from "./MobileNavbar"; // Importe o novo componente
 import styles from "./DefaultLayout.module.css";
-import { Menu } from "lucide-react"; // Importar ícone do menu
 
 export function DefaultLayout() {
-  // Estado inicial: No Desktop começa aberto (false), no Mobile começa fechado (true)
-  // Mas para evitar erro de hidratação ou complexidade, podemos iniciar como true se a tela for pequena
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-    // Verifica se estamos no browser e a largura da tela
-    if (typeof window !== 'undefined') {
-      return window.innerWidth <= 768; // Se for mobile, começa colapsado (true)
-    }
-    return false;
-  });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Desktop: Aberto por padrão
+  const [isMobile, setIsMobile] = useState(false);
+  const location = useLocation();
 
-  // Opcional: Listener para atualizar se o utilizador redimensionar a janela
+  // Detecta se é mobile
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth <= 768) {
-         // Não forçamos o colapso aqui para não fechar na cara do utilizador se ele só virar o ecrã,
-         // mas garante a lógica correta de layout.
-      }
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      // Se virou desktop, garante que a sidebar abre
+      if (!mobile) setIsSidebarOpen(false); 
+      // Se virou mobile, garante que a sidebar começa fechada
+      if (mobile) setIsSidebarOpen(true); // true aqui significa "Colapsado/Fechado" na lógica invertida do seu Sidebar.tsx?
+      // Nota: No seu Sidebar.tsx, isCollapsed=true significa FECHADO.
     };
+
+    handleResize(); // Executa ao iniciar
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Fecha o "Menu Gaveta" automaticamente ao navegar no mobile
+  useEffect(() => {
+    if (isMobile) {
+      setIsSidebarOpen(true); // Fecha a sidebar (colapsa) ao mudar de rota
+    }
+  }, [location, isMobile]);
+
   return (
     <div className={styles.container}>
-      {/* Botão Mobile para ABRIR a sidebar */}
-      {isSidebarCollapsed && (
-        <button 
-          className={styles.mobileMenuBtn}
-          onClick={() => setIsSidebarCollapsed(false)}
-          aria-label="Abrir Menu"
-        >
-          <Menu size={24} />
-        </button>
-      )}
-
-      <Sidebar 
-        isCollapsed={isSidebarCollapsed} 
-        toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
-      />
       
-      <main className={`${styles.content} ${isSidebarCollapsed ? styles.contentCollapsed : ''}`}>
+      {/* SIDEBAR (Funciona como Menu Lateral no Desktop e Gaveta no Mobile) 
+         Passamos a função para fechar (toggle)
+      */}
+      <Sidebar 
+        isCollapsed={isSidebarOpen} 
+        toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+      />
+
+      {/* CONTEÚDO PRINCIPAL */}
+      <main className={`${styles.content} ${isSidebarOpen ? styles.contentCollapsed : ''}`}>
         <Outlet />
+        {/* Espaço extra no final para o conteúdo não ficar escondido atrás da navbar mobile */}
+        <div className={styles.mobileSpacer}></div>
       </main>
+
+      {/* BARRA INFERIOR (Só aparece no mobile via CSS) */}
+      <MobileNavbar onOpenMenu={() => setIsSidebarOpen(false)} /> {/* False = Abrir Sidebar */}
+      
     </div>
   );
 }

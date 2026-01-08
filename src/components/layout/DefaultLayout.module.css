@@ -1,52 +1,46 @@
 /* src/components/layout/DefaultLayout.module.css */
+
 .container {
   display: flex;
   min-height: 100vh;
   background-color: var(--bg-page);
-  position: relative; /* Necessário para posicionar o botão mobile */
+  position: relative;
 }
 
 .content {
   flex: 1;
   padding: 2rem;
   transition: margin-left 0.3s ease;
-  margin-left: 260px; 
+  margin-left: 260px; /* Espaço da Sidebar Aberta Desktop */
 }
 
 .contentCollapsed {
-  margin-left: 90px;
+  margin-left: 90px; /* Espaço da Sidebar Fechada Desktop */
 }
 
-/* Botão Mobile Hambúrguer */
-.mobileMenuBtn {
-  display: none; /* Escondido no Desktop */
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
-  z-index: 30; /* Acima do conteúdo, abaixo da sidebar aberta */
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-color);
-  padding: 8px;
-  border-radius: 8px;
-  cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  color: var(--text-primary);
+.mobileSpacer {
+  display: none;
+  height: 80px; /* Altura da navbar mobile + folga */
 }
 
-/* Responsividade Mobile */
+/* --- MOBILE --- */
 @media (max-width: 768px) {
   .content {
-    margin-left: 0; /* Remove margem no mobile */
+    margin-left: 0 !important; /* Remove margem lateral */
     padding: 1rem;
-    padding-top: 4rem; /* Espaço extra no topo para o botão Menu não ficar em cima do texto */
-  }
-  .contentCollapsed {
-    margin-left: 0;
+    padding-bottom: 0; /* O spacer cuida do fundo */
   }
   
+  .contentCollapsed {
+    margin-left: 0 !important;
+  }
+  
+  .mobileSpacer {
+    display: block; /* Ativa o espaço extra no fundo */
+  }
+
+  /* Removemos o botão flutuante antigo se ainda existir */
   .mobileMenuBtn {
-    display: flex; /* Aparece no mobile */
-    align-items: center;
-    justify-content: center;
+    display: none !important;
   }
 }

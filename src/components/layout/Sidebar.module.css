@@ -254,9 +254,9 @@
   }
   
   /* Quando colapsado (fechado), movemos para fora da tela */
-  .sidebar.collapsed {
-    transform: translateX(-100%);
-    width: 260px; /* Mantém largura para animação fluida */
+.sidebar.collapsed {
+    transform: translateX(-100%); 
+    width: 260px; /* Mantém largura total quando abrir */
   }
 
   /* Overlay visível no mobile quando aberto */
